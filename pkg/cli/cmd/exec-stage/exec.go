@@ -48,7 +48,7 @@ func AddCmdGeneral(
 	}
 	general.AddFlagsExecArgs(cmd, execArgs)
 	general.AddFlagsComponentArgs(cmd, &compArgs)
-	general.AddFlagWatcher(cmd, &noSkip)
+	general.AddFlagCache(cmd, &noSkip)
 
 	parent.AddCommand(cmd)
 }
@@ -84,7 +84,7 @@ func AddCmdAlias(
 
 	general.AddFlagsExecArgs(cmd, execArgs)
 	general.AddFlagsComponentArgs(cmd, &compArgs)
-	general.AddFlagWatcher(cmd, &noSkip)
+	general.AddFlagCache(cmd, &noSkip)
 
 	if o.modify != nil {
 		o.modify(cmd)
@@ -108,9 +108,9 @@ func ExecuteStage(
 		return err
 	}
 
-	sess := dag.WatcherSession{Args: cl.WatcherArgs(), RootDir: rootDir}
-	if noSkip && sess.Args != nil {
-		sess.Args.Disabled = true
+	sess := dag.WatcherSession{Settings: &cl.RootArgs().Watcher, RootDir: rootDir}
+	if noSkip && sess.Settings != nil {
+		sess.Settings.Disabled = true
 	}
 
 	targets, prios, err := dag.DefineExecutionOrder(

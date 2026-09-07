@@ -3,13 +3,13 @@ package scan
 
 import (
 	stderr "errors"
-	"io/fs"
+	stdfs "io/fs"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/sdsc-ordes/quitsh/pkg/common/recache"
 	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
 	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 
 	"github.com/charlievieth/fastwalk"
@@ -23,8 +23,7 @@ type Scanner struct {
 }
 
 // New creates a scanner over `rootDir`.
-// `excludes` are regexes matched against repo-relative slash paths;
-// a matching directory is pruned.
+// `excludes` are regexes matched against repo-relative slash paths.
 func New(rootDir string, hasher watcher.Hasher, excludes []string) (*Scanner, error) {
 	cache := recache.NewCache(false)
 
@@ -47,13 +46,13 @@ func (s *Scanner) Scan(prev map[string]watcher.Stamp) (map[string]watcher.Stamp,
 		files = make(map[string]watcher.Stamp, len(prev))
 	)
 
-	walk := func(absPath string, d fs.DirEntry, err error) error {
+	walk := func(absPath string, d stdfs.DirEntry, err error) error {
 		if err != nil {
 			// A file vanishing mid-scan is normal; it is simply not recorded.
 			return nil //nolint:nilerr // deliberate.
 		}
 
-		rel, e := filepath.Rel(s.rootDir, absPath)
+		rel, e := fs.MakeRelativeTo(s.rootDir, absPath)
 		if e != nil {
 			return nil //nolint:nilerr // outside the root, ignore.
 		}
@@ -81,11 +80,14 @@ func (s *Scanner) Scan(prev map[string]watcher.Stamp) (map[string]watcher.Stamp,
 			return nil //nolint:nilerr // vanished, ignore.
 		}
 
+		var prevStamp *watcher.Stamp
 		lock.Lock()
-		p, ok := prev[rel]
+		if p, ok := prev[rel]; ok {
+			prevStamp = &p
+		}
 		lock.Unlock()
 
-		stamp, e := s.hasher.Stamp(absPath, info.ModTime().UnixNano(), info.Size(), p, ok)
+		stamp, e := s.hasher.Stamp(absPath, info.ModTime().UnixNano(), info.Size(), prevStamp)
 		if e != nil {
 			return nil //nolint:nilerr // unreadable file: treated as untracked.
 		}
@@ -107,9 +109,4 @@ func (s *Scanner) Scan(prev map[string]watcher.Stamp) (map[string]watcher.Stamp,
 	}
 
 	return files, nil
-}
-
-// RootDir returns the scanned root directory.
-func (s *Scanner) RootDir() string {
-	return strings.TrimSuffix(s.rootDir, "/")
 }

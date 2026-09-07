@@ -1,35 +1,26 @@
 package dag
 
 import (
-	gocontext "context"
+	stdctx "context"
 
 	"github.com/sdsc-ordes/quitsh/pkg/common/set"
 	"github.com/sdsc-ordes/quitsh/pkg/common/stack"
 	"github.com/sdsc-ordes/quitsh/pkg/component/target"
 	"github.com/sdsc-ordes/quitsh/pkg/log"
 	"github.com/sdsc-ordes/quitsh/pkg/watcher"
-	watcherclient "github.com/sdsc-ordes/quitsh/pkg/watcher/client"
+	watcherc "github.com/sdsc-ordes/quitsh/pkg/watcher/client"
 )
 
 // WatcherSession carries the watcher settings through one `quitsh` run:
 // [DefineExecutionOrder] fills in the scan id it decided on, and [Execute]
 // reports the results back against that same scan id.
 type WatcherSession struct {
-	// Args are the watcher settings. Change tracking is off when nil or
-	// when `Args.Disabled` is true.
-	Args *watcher.Args
-
-	// RootDir is the repository root.
-	RootDir string
+	RootDir  string
+	Settings *watcher.Args
 
 	// ScanID is the scan the dirty decision was based on. Filled in by
 	// [DefineExecutionOrder]; zero means the watcher was not consulted.
 	ScanID int64
-}
-
-// enabled reports whether the session may talk to a watcher server.
-func (s *WatcherSession) enabled() bool {
-	return s != nil && s.Args.IsEnabled()
 }
 
 // WithWatcher makes the execution order ask the watcher server which targets
@@ -37,7 +28,7 @@ func (s *WatcherSession) enabled() bool {
 // When the server cannot be reached everything is treated as changed.
 func WithWatcher(sess *WatcherSession) ExecOption {
 	return func(o *opts) error {
-		if !sess.enabled() {
+		if sess == nil || !sess.Enabled() {
 			return nil
 		}
 
@@ -47,6 +38,10 @@ func WithWatcher(sess *WatcherSession) ExecOption {
 	}
 }
 
+func (sess *WatcherSession) Enabled() bool {
+	return !sess.Settings.Disabled
+}
+
 // queryWatcher asks the server about all targets in `nodes`.
 func queryWatcher(sess *WatcherSession, nodes TargetNodeMap) map[target.ID]bool {
 	ids := make([]target.ID, 0, len(nodes))
@@ -54,7 +49,10 @@ func queryWatcher(sess *WatcherSession, nodes TargetNodeMap) map[target.ID]bool 
 		ids = append(ids, id)
 	}
 
-	res := watcherclient.QueryDirty(gocontext.Background(), sess.Args, sess.RootDir, ids)
+	res := watcherc.QueryDirty(
+		stdctx.Background(),
+		sess.Settings,
+		sess.RootDir, ids)
 	sess.ScanID = res.ScanID
 
 	if res.Dirty == nil {
@@ -146,10 +144,10 @@ func markSkipped(targets TargetNodeMap) {
 	}
 }
 
-// CollectResults returns the terminal result of every target which actually
+// collectResults returns the terminal result of every target which actually
 // ran. Skipped, cancelled and never-started targets are left out: the watcher
 // must only learn about builds that happened.
-func CollectResults(targets TargetNodeMap) map[target.ID]bool {
+func collectResults(targets TargetNodeMap) map[target.ID]bool {
 	results := make(map[target.ID]bool, len(targets))
 
 	for id, n := range targets {
@@ -179,13 +177,13 @@ func CollectResults(targets TargetNodeMap) map[target.ID]bool {
 
 // reportToWatcher sends the results of this run to the watcher server.
 func reportToWatcher(sess *WatcherSession, targets TargetNodeMap) {
-	if !sess.enabled() || sess.ScanID == 0 {
+	if sess.Settings.Disabled || sess.ScanID == 0 {
 		return
 	}
 
-	results := CollectResults(targets)
+	results := collectResults(targets)
 	log.Debug("Reporting results to the watcher.", "scan", sess.ScanID, "targets", len(results))
 
-	watcherclient.ReportResults(
-		gocontext.Background(), sess.Args, sess.RootDir, sess.ScanID, results)
+	watcherc.ReportResults(
+		stdctx.Background(), sess.Settings, sess.RootDir, sess.ScanID, results)
 }

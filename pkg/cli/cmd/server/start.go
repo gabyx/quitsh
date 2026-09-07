@@ -1,4 +1,4 @@
-package servercmd
+package server
 
 import (
 	"github.com/sdsc-ordes/quitsh/pkg/cli"
@@ -15,10 +15,10 @@ func addServeCmd(cl cli.ICLI, parent *cobra.Command) {
 	var address string
 
 	cmd := &cobra.Command{
-		Use:   "serve",
+		Use:   "start",
 		Short: "Run the watcher server in the foreground.",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return serve(cl, address)
+			return start(cl, address)
 		},
 	}
 
@@ -29,12 +29,8 @@ func addServeCmd(cl cli.ICLI, parent *cobra.Command) {
 	parent.AddCommand(cmd)
 }
 
-func serve(cl cli.ICLI, address string) error {
-	args, err := watcherArgs(cl)
-	if err != nil {
-		return err
-	}
-
+func start(cl cli.ICLI, address string) error {
+	args := &cl.RootArgs().Watcher
 	if address == "" {
 		address = args.ResolveAddress(cl.RootDir())
 	}

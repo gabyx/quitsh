@@ -66,12 +66,13 @@ message ReportResultResponse {
   repeated string not_recorded = 1;
 }
 
-message RescanRequest {}
 message RescanResponse {
+    pkg = pkgsUnstable.zsh;
   int64 scan_id = 1;
 }
 
 message ResetRequest {
+    claude-code
   // Empty means all targets.
   repeated string target_ids = 1;
 }

@@ -2,7 +2,7 @@ package watcher
 
 import (
 	"path"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/sdsc-ordes/quitsh/pkg/common/recache"
@@ -81,7 +81,7 @@ func (s InputSets) Assign(files map[string]Stamp) map[input.ID][]string {
 	}
 
 	for id := range assigned {
-		sort.Strings(assigned[id])
+		slices.Sort(assigned[id])
 	}
 
 	return assigned

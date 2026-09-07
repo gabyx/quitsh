@@ -18,6 +18,7 @@ import (
 	"github.com/sdsc-ordes/quitsh/pkg/exec"
 	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
 	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 
 	"github.com/goccy/go-yaml"
 	"github.com/hashicorp/go-version"
@@ -66,6 +67,9 @@ type (
 
 		// Enable running targets in parallel.
 		Parallel bool `yaml:"parallel"`
+
+		// All watcher arguments.
+		Watcher watcher.Args `yaml:"watcher"`
 	}
 
 	Settings struct {

@@ -1,4 +1,4 @@
-package servercmd
+package server
 
 import (
 	"github.com/sdsc-ordes/quitsh/pkg/cli"
@@ -17,7 +17,9 @@ func addControlCmds(cl cli.ICLI, parent *cobra.Command) {
 			if err != nil {
 				return err
 			}
-			defer func() { log.WarnE(c.Close(), "Could not close watcher connection.") }()
+			defer func() {
+				log.WarnE(c.Close(), "Could not close watcher connection.")
+			}()
 
 			return c.Shutdown(cl.Ctx())
 		},
@@ -31,7 +33,9 @@ func addControlCmds(cl cli.ICLI, parent *cobra.Command) {
 			if err != nil {
 				return err
 			}
-			defer func() { log.WarnE(c.Close(), "Could not close watcher connection.") }()
+			defer func() {
+				log.WarnE(c.Close(), "Could not close watcher connection.")
+			}()
 
 			ids := make([]target.ID, 0, len(rawIDs))
 			for _, id := range rawIDs {

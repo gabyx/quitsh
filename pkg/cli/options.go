@@ -206,17 +206,11 @@ func WithConfigFilename(filename string) Option {
 }
 
 // WithWatcher enables the `quitsh server` change tracking for this CLI.
-// The selector points into your own config, e.g.:
-//
-//	cli.WithWatcher(func(c config.IConfig) *watcher.Args {
-//		return &common.Cast[*cliconfig.Config](c).Watcher
-//	})
-//
 // NOTE: When you use this option, add the `server` command with
 // `servercmd.AddCmd` to the root command.
-func WithWatcher(selector watcher.ArgsSelector) Option {
+func WithWatcher(args *watcher.Args) Option {
 	return func(c *cliApp) error {
-		c.watcherArgsSelector = selector
+		c.watcherArgs = args
 
 		return nil
 	}

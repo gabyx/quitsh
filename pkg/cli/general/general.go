@@ -83,11 +83,11 @@ func FindComponents(
 	return
 }
 
-// AddFlagWatcher adds the `--no-skip` flag which turns the change-tracking
-// watcher off for this invocation. Change tracking is on by default; without a
+// AddFlagCache adds the `--no-cache` flag which turns change-tracking cache
+// off for this invocation. Change tracking is on by default; without a
 // running `quitsh server` it has no effect anyway.
-func AddFlagWatcher(cmd *cobra.Command, noSkip *bool) {
-	cmd.Flags().BoolVar(noSkip, "no-skip", false,
+func AddFlagCache(cmd *cobra.Command, noCache *bool) {
+	cmd.Flags().BoolVar(noCache, "no-cache", false,
 		"Run every selected target, even ones which did not change since "+
 			"their last successful build (ignores a running 'quitsh server').")
 }

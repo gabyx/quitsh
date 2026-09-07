@@ -103,11 +103,7 @@ func main() {
 				return &cc.Commands.DispatchArgs
 			},
 		),
-		cli.WithWatcher(func(c config.IConfig) *watcher.Args {
-			cc := common.Cast[*Config](c)
-
-			return &cc.Watcher
-		}),
+		cli.WithWatcher(&args.Watcher),
 	)
 	log.PanicE(err, "Could not setup cli.")
 

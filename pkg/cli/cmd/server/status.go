@@ -1,9 +1,9 @@
-package servercmd
+package server
 
 import (
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 	"time"
 
 	"github.com/sdsc-ordes/quitsh/pkg/cli"
@@ -78,7 +78,7 @@ func status(cl cli.ICLI, rawIDs []string, dirtyOnly bool, staleOk bool) error {
 		sorted = append(sorted, id)
 	}
 
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i] < sorted[j] })
+	slices.Sort(sorted)
 
 	for _, id := range sorted {
 		dirty := res.Dirty[id]
@@ -86,7 +86,7 @@ func status(cl cli.ICLI, rawIDs []string, dirtyOnly bool, staleOk bool) error {
 			continue
 		}
 
-		fmt.Fprintf(os.Stdout, "%v %v%v\n", mark(dirty), id, reason(&res, id))
+		fmt.Fprintf(os.Stdout, "- %v %v%v\n", mark(dirty), id, reason(&res, id))
 	}
 
 	return nil

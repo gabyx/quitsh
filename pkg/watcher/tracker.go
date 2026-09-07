@@ -17,8 +17,8 @@ type (
 		Digest Digest `json:"digest"`
 	}
 
-	// LastSuccessfulBuild is the input state a target was last built from.
-	LastSuccessfulBuild struct {
+	// LastRunSuccess is the input state a target was last built from.
+	LastRunSuccess struct {
 		ScanID   ScanID              `json:"scanID"`
 		AtUnixMs int64               `json:"atUnixMs"`
 		Inputs   map[input.ID]Digest `json:"inputs"`
@@ -50,8 +50,8 @@ type (
 		history  map[input.ID][]ChangePoint
 		lastScan ScanID
 
-		lastSuccess map[target.ID]LastSuccessfulBuild
-		lastRun     map[target.ID]LastRun
+		lastSuccessfulRun map[target.ID]LastRunSuccess
+		lastRun           map[target.ID]LastRun
 
 		pins map[ScanID]int
 	}
@@ -60,12 +60,12 @@ type (
 // NewTracker creates an empty tracker.
 func NewTracker() *Tracker {
 	return &Tracker{
-		sets:        InputSets{},
-		targets:     map[target.ID][]input.ID{},
-		history:     map[input.ID][]ChangePoint{},
-		lastSuccess: map[target.ID]LastSuccessfulBuild{},
-		lastRun:     map[target.ID]LastRun{},
-		pins:        map[ScanID]int{},
+		sets:              InputSets{},
+		targets:           map[target.ID][]input.ID{},
+		history:           map[input.ID][]ChangePoint{},
+		lastSuccessfulRun: map[target.ID]LastRunSuccess{},
+		lastRun:           map[target.ID]LastRun{},
+		pins:              map[ScanID]int{},
 	}
 }
 
@@ -78,10 +78,10 @@ func (t *Tracker) SetComponents(sets InputSets, targets map[target.ID][]input.ID
 	t.sets = sets
 	t.targets = targets
 
-	for id := range t.lastSuccess {
+	for id := range t.lastSuccessfulRun {
 		if _, exists := targets[id]; !exists {
 			log.Debug("Dropping state of vanished target.", "target", id)
-			delete(t.lastSuccess, id)
+			delete(t.lastSuccessfulRun, id)
 			delete(t.lastRun, id)
 		}
 	}
@@ -110,7 +110,7 @@ func (t *Tracker) Update(scanID ScanID, files map[string]Stamp) {
 		}
 
 		t.history[id] = append(h, ChangePoint{ScanID: scanID, Digest: d})
-		log.Trace("Input set changed.", "input", id, "scan", scanID)
+		log.Debug("Input set changed.", "input", id, "scan", scanID, "digest", d)
 	}
 
 	t.lastScan = scanID
@@ -175,7 +175,7 @@ func (t *Tracker) statusLocked(id target.ID) TargetStatus {
 		return st
 	}
 
-	last, ok := t.lastSuccess[id]
+	last, ok := t.lastSuccessfulRun[id]
 	if !ok {
 		st.Dirty = true
 
@@ -209,6 +209,7 @@ func (t *Tracker) Report(scanID ScanID, results map[target.ID]bool) (notRecorded
 
 	now := nowUnixMs()
 
+	// Iterate sorted to be more deterministic.
 	ids := make([]target.ID, 0, len(results))
 	for id := range results {
 		ids = append(ids, id)
@@ -216,18 +217,28 @@ func (t *Tracker) Report(scanID ScanID, results map[target.ID]bool) (notRecorded
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 
 	for _, id := range ids {
+		inputs, known := t.targets[id]
+		if !known {
+			log.Warnf("Target '%v' not known -> not recording status. [scanID: '%v']",
+				id, scanID)
+
+			notRecorded = append(notRecorded, id)
+
+			continue
+		}
+		log.Infof("Got '%v' inputs for target '%v'.", len(inputs), id)
+
 		success := results[id]
 		t.lastRun[id] = LastRun{Success: success, ScanID: scanID, AtUnixMs: now}
 
 		if !success {
-			continue
-		}
-
-		inputs, known := t.targets[id]
-		if !known {
-			notRecorded = append(notRecorded, id)
+			log.Infof("❌ Recorded target id '%v' last run as NOT successful. [scanID: '%v']",
+				id, scanID)
 
 			continue
+		} else {
+			log.Infof("🌻 Recorded target id '%v' last run as successful. [scanID: '%v']",
+				id, scanID)
 		}
 
 		digests := make(map[input.ID]Digest, len(inputs))
@@ -240,18 +251,19 @@ func (t *Tracker) Report(scanID ScanID, results map[target.ID]bool) (notRecorded
 
 				break
 			}
+			log.Debugf("Recorded input '%v' digest '%v'.", in, d)
 			digests[in] = d
 		}
 
 		if !complete {
-			log.Debug("Scan id no longer resolvable; not recording build.",
+			log.Warn("Scan id no longer resolvable; not recording last succ. build.",
 				"target", id, "scan", scanID)
 			notRecorded = append(notRecorded, id)
 
 			continue
 		}
 
-		t.lastSuccess[id] = LastSuccessfulBuild{
+		t.lastSuccessfulRun[id] = LastRunSuccess{
 			ScanID:   scanID,
 			AtUnixMs: now,
 			Inputs:   digests,
@@ -290,14 +302,15 @@ func (t *Tracker) Reset(ids ...target.ID) {
 	defer t.mu.Unlock()
 
 	if len(ids) == 0 {
-		t.lastSuccess = map[target.ID]LastSuccessfulBuild{}
+		log.Info("Resetting all last runs and last successful runs.")
+		t.lastSuccessfulRun = map[target.ID]LastRunSuccess{}
 		t.lastRun = map[target.ID]LastRun{}
 
 		return
 	}
 
 	for _, id := range ids {
-		delete(t.lastSuccess, id)
+		delete(t.lastSuccessfulRun, id)
 		delete(t.lastRun, id)
 	}
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/sdsc-ordes/quitsh/pkg/log"
 	"github.com/sdsc-ordes/quitsh/pkg/runner/factory"
 	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
-	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 
 	"github.com/spf13/cobra"
 )
@@ -234,14 +233,6 @@ func mapTargetNameToStage(
 
 		return nil
 	}
-}
-
-func (c *cliApp) WatcherArgs() *watcher.Args {
-	if c.watcherArgsSelector == nil {
-		return nil
-	}
-
-	return c.watcherArgsSelector(c.config)
 }
 
 func (c *cliApp) ConfigFilename() string {

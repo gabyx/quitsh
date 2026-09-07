@@ -15,7 +15,7 @@ import (
 	listcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/list"
 	nixcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/nix"
 	pccmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/process-compose"
-	servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"
+	server "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"
 	versionupcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/version-up"
 	"github.com/sdsc-ordes/quitsh/pkg/common"
 	"github.com/sdsc-ordes/quitsh/pkg/component/query"
@@ -27,7 +27,6 @@ import (
 	symlinkrunner "github.com/sdsc-ordes/quitsh/pkg/runner/symlinks"
 	trivyrunner "github.com/sdsc-ordes/quitsh/pkg/runner/trivy"
 	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
-	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 )
 
 func main() {
@@ -61,11 +60,7 @@ func main() {
 				return &cc.Commands.DispatchArgs
 			},
 		),
-		cli.WithWatcher(func(c config.IConfig) *watcher.Args {
-			cc := common.Cast[*cliconfig.Config](c)
-
-			return &cc.Watcher
-		}),
+		cli.WithWatcher(&conf.Commands.Root.Watcher),
 	)
 	log.PanicE(err, "Could not initialize CLI app.")
 
@@ -84,7 +79,7 @@ func main() {
 	exectarget.AddCmd(cli, cli.RootCmd(), &conf.Commands.ExecArgs)
 	execrunner.AddCmd(cli, cli.RootCmd(), &conf.Commands.DispatchArgs)
 	pccmd.AddCmd(cli, cli.RootCmd(), flakeDirRel)
-	servercmd.AddCmd(cli, cli.RootCmd())
+	server.AddCmd(cli, cli.RootCmd())
 
 	formatcmd.AddCmd(cli.RootCmd(), &conf.Nix)
 	nixcmd.AddCmd(cli, cli.RootCmd(), &conf.Nix)

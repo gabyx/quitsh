@@ -150,7 +150,7 @@ func TestCollectResultsIgnoresSkippedAndUnexecutedTargets(t *testing.T) {
 	cancelled.Execution.Cancel = true
 	cancelled.Execution.Runners = RunnerStatuses{{Status: ExecStatusNotRun}}
 
-	results := CollectResults(TargetNodeMap{
+	results := collectResults(TargetNodeMap{
 		tgtRan:         ran,
 		tgtFailed:      failed,
 		"c::skipped":   skipped,

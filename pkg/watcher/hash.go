@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/sdsc-ordes/quitsh/pkg/log"
 )
 
 type (
@@ -30,7 +31,11 @@ type (
 	// `prev` is the stamp from the previous scan (if `prevOk`), which
 	// implementations may reuse to avoid reading file content.
 	Hasher interface {
-		Stamp(absPath string, modTimeNs int64, size int64, prev Stamp, prevOk bool) (Stamp, error)
+		Stamp(
+			absPath string,
+			modTimeNs int64,
+			size int64,
+			prev *Stamp) (Stamp, error)
 	}
 )
 
@@ -59,19 +64,25 @@ func NewHasher(mode HashMode) (Hasher, error) {
 type mtimeSizeHasher struct{}
 
 func (mtimeSizeHasher) Stamp(
-	_ string, modTimeNs int64, size int64, _ Stamp, _ bool,
+	absPath string, modTimeNs int64, size int64, prev *Stamp,
 ) (Stamp, error) {
+	if prev != nil && (prev.ModTimeNs != modTimeNs || prev.Size != size) {
+		log.Debugf("File mod time or size changed '%v'", absPath)
+	}
+
 	return Stamp{ModTimeNs: modTimeNs, Size: size}, nil
 }
 
 type checksumHasher struct{}
 
 func (checksumHasher) Stamp(
-	absPath string, modTimeNs int64, size int64, prev Stamp, prevOk bool,
+	absPath string, modTimeNs int64, size int64, prev *Stamp,
 ) (Stamp, error) {
 	// Content cannot have changed if neither mtime nor size moved.
-	if prevOk && prev.ModTimeNs == modTimeNs && prev.Size == size {
-		return prev, nil
+	if prev != nil && prev.ModTimeNs == modTimeNs && prev.Size == size {
+		return *prev, nil
+	} else {
+		log.Debugf("File mod time or size changed '%v'", absPath)
 	}
 
 	f, err := os.Open(absPath)
@@ -103,9 +114,12 @@ func DigestOf(sortedPaths []string, stamps map[string]Stamp) Digest {
 	for _, p := range sortedPaths {
 		s := stamps[p]
 		_, _ = h.Write([]byte(p))
-		write(uint64(s.ModTimeNs)) //nolint:gosec // wrap-around is fine for hashing.
-		write(uint64(s.Size))      //nolint:gosec // wrap-around is fine for hashing.
-		write(s.Sum)
+		if s.Sum != 0 {
+			write(s.Sum)
+		} else {
+			write(uint64(s.ModTimeNs)) //nolint:gosec // wrap-around is fine for hashing.
+			write(uint64(s.Size))      //nolint:gosec // wrap-around is fine for hashing.
+		}
 	}
 
 	return Digest(h.Sum64())

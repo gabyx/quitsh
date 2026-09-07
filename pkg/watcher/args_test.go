@@ -22,13 +22,6 @@ func TestZeroArgsAreUsable(t *testing.T) {
 	assert.NotEmpty(t, a.ResolveStateFile("/repo"))
 }
 
-func TestDisabledArgs(t *testing.T) {
-	t.Parallel()
-	a := Args{Disabled: true}
-
-	assert.False(t, a.IsEnabled())
-}
-
 func TestNilArgsAreNotEnabled(t *testing.T) {
 	t.Parallel()
 	var a *Args

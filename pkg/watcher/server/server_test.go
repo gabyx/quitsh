@@ -73,9 +73,9 @@ func TestScanOnceIncrementsScanID(t *testing.T) {
 	root, discover := testRepo(t)
 	s := newServer(t, root, discover)
 
-	first, err := s.ScanOnce()
+	first, err := s.scanOnce()
 	require.NoError(t, err)
-	second, err := s.ScanOnce()
+	second, err := s.scanOnce()
 	require.NoError(t, err)
 
 	assert.Equal(t, watcher.ScanID(1), first)
@@ -87,7 +87,7 @@ func TestServerTracksTargetOfDiscoveredComponents(t *testing.T) {
 	root, discover := testRepo(t)
 	s := newServer(t, root, discover)
 
-	_, err := s.ScanOnce()
+	_, err := s.scanOnce()
 	require.NoError(t, err)
 
 	st := s.Tracker().Status([]target.ID{tgtBuild})
@@ -101,11 +101,11 @@ func TestEnsureFreshRunsAScanStartedAfterTheRequest(t *testing.T) {
 	root, discover := testRepo(t)
 	s := newServer(t, root, discover)
 
-	_, err := s.ScanOnce()
+	_, err := s.scanOnce()
 	require.NoError(t, err)
 
 	notBefore := time.Now()
-	id, err := s.EnsureFresh(t.Context(), notBefore)
+	id, err := s.ensureFresh(t.Context(), notBefore)
 	require.NoError(t, err)
 
 	assert.Equal(t, watcher.ScanID(2), id)
@@ -117,11 +117,11 @@ func TestEnsureFreshReusesAFreshEnoughScan(t *testing.T) {
 	root, discover := testRepo(t)
 	s := newServer(t, root, discover)
 
-	id, err := s.ScanOnce()
+	id, err := s.scanOnce()
 	require.NoError(t, err)
 
 	// A scan that already started after this instant satisfies the request.
-	got, err := s.EnsureFresh(t.Context(), time.Now().Add(-time.Hour))
+	got, err := s.ensureFresh(t.Context(), time.Now().Add(-time.Hour))
 	require.NoError(t, err)
 	assert.Equal(t, id, got)
 }
@@ -138,12 +138,12 @@ func TestComponentConfigChangeTriggersRediscovery(t *testing.T) {
 	}
 
 	s := newServer(t, root, counting)
-	_, err := s.ScanOnce()
+	_, err := s.scanOnce()
 	require.NoError(t, err)
 	before := calls
 	require.Positive(t, before, "the first scan must discover components")
 
-	_, err = s.ScanOnce()
+	_, err = s.scanOnce()
 	require.NoError(t, err)
 	assert.Equal(t, before, calls, "unchanged configs must not re-discover")
 
@@ -151,7 +151,7 @@ func TestComponentConfigChangeTriggersRediscovery(t *testing.T) {
 		path.Join(root, "comp-a", configFileName),
 		[]byte("name: comp-a\n# touched\n"), 0o600))
 
-	_, err = s.ScanOnce()
+	_, err = s.scanOnce()
 	require.NoError(t, err)
 	assert.Greater(t, calls, before)
 }

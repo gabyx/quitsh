@@ -78,7 +78,7 @@ func (r *Cache) Add(pattern string) (*regexp.Regexp, error) {
 func (r List) Match(s string) bool {
 	for idx := range r {
 		if r[idx].MatchString(s) {
-			log.Debug("Regex matches.", "regex", r[idx].String())
+			log.Trace("Regex matches.", "regex", r[idx].String())
 
 			return true
 		}

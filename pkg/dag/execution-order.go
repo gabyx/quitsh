@@ -146,8 +146,9 @@ func defineExecutionOrder(
 	}
 
 	if o.watcher != nil {
-		// The watcher answers per target; dependency propagation stays here.
-		err = g.SolveWatcherChanges(queryWatcher(o.watcher, allNodes))
+		targets := queryWatcher(o.watcher, allNodes)
+		log.Debug("Changed targets.", "dirty", targets)
+		err = g.SolveWatcherChanges(targets)
 	} else {
 		// Make all input path changes absolute.
 		for i := range o.inputPathChanges {

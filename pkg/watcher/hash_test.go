@@ -21,7 +21,7 @@ func TestMTimeSizeHasherIgnoresContent(t *testing.T) {
 	h, err := NewHasher(HashModeMTimeSize)
 	require.NoError(t, err)
 
-	s, err := h.Stamp("/does/not/matter", 42, 7, Stamp{}, false)
+	s, err := h.Stamp("/does/not/matter", 42, 7, nil)
 	require.NoError(t, err)
 	assert.Equal(t, Stamp{ModTimeNs: 42, Size: 7}, s)
 }
@@ -35,12 +35,12 @@ func TestChecksumHasherReadsContent(t *testing.T) {
 	h, err := NewHasher(HashModeChecksum)
 	require.NoError(t, err)
 
-	s, err := h.Stamp(p, 1, 5, Stamp{}, false)
+	s, err := h.Stamp(p, 1, 5, nil)
 	require.NoError(t, err)
 	assert.NotZero(t, s.Sum)
 
 	// Same mtime+size -> reuses the previous stamp without reading.
-	reused, err := h.Stamp("/deleted/by/now", 1, 5, s, true)
+	reused, err := h.Stamp("/deleted/by/now", 1, 5, &s)
 	require.NoError(t, err)
 	assert.Equal(t, s, reused)
 }

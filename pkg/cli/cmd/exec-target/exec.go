@@ -14,7 +14,7 @@ import (
 
 type execTargetArgs struct {
 	TargetIDs []string
-	noSkip    bool
+	noCache   bool
 }
 
 func AddCmd(
@@ -38,7 +38,7 @@ func AddCmd(
 		"The executable tags which will get matched against the "+
 			"`include.tagExpr` on a step to include/exclude steps.")
 
-	general.AddFlagWatcher(execCmd, &args.noSkip)
+	general.AddFlagCache(execCmd, &args.noCache)
 
 	_ = execCmd.MarkFlagRequired("component-dir")
 
@@ -62,10 +62,11 @@ func runExec(cli cli.ICLI, args *execTargetArgs, execArgs *dag.ExecArgs) error {
 		selection.Insert(target.ID(args.TargetIDs[i]))
 	}
 
-	sess := dag.WatcherSession{Args: cli.WatcherArgs(), RootDir: rootDir}
-	if args.noSkip && sess.Args != nil {
-		sess.Args.Disabled = true
+	watchArgs := &cli.RootArgs().Watcher
+	if args.noCache {
+		watchArgs.Disabled = true
 	}
+	sess := dag.WatcherSession{Settings: watchArgs, RootDir: rootDir}
 
 	targets, prios, err := dag.DefineExecutionOrder(
 		all,

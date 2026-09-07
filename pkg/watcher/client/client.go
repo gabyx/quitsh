@@ -41,7 +41,9 @@ type (
 func Dial(args *watcher.Args, rootDir string) (*Client, error) {
 	address := args.ResolveAddress(rootDir)
 
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(
+		address,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, errors.AddContext(err, "could not connect to watcher '%v'", address)
 	}

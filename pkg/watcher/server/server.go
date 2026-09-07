@@ -58,7 +58,7 @@ type (
 
 // New creates a server for the repository at `rootDir`.
 // The loaded durable state is installed immediately; the first scan (done by
-// [Server.ScanOnce] or [Server.Run]) then decides what is dirty.
+// [Server.scanOnce] or [Server.Run]) then decides what is dirty.
 func New(
 	args *watcher.Args,
 	rootDir string,
@@ -124,10 +124,11 @@ func (s *Server) Stats() Stats {
 	}
 }
 
-// ScanOnce performs one scan, re-discovering components when any component
+// scanOnce performs one scan, re-discovering components when any component
 // config file changed, and installs the result into the tracker.
-func (s *Server) ScanOnce() (watcher.ScanID, error) {
+func (s *Server) scanOnce() (watcher.ScanID, error) {
 	started := time.Now()
+	log.Infof("Scan started.")
 
 	s.mu.Lock()
 	prev := s.files
@@ -161,14 +162,14 @@ func (s *Server) ScanOnce() (watcher.ScanID, error) {
 
 	s.tracker.Update(id, files)
 
-	log.Trace("Scan done.", "scan", id, "files", len(files), "took", time.Since(started))
+	log.Info("Scan done.", "scan", id, "files", len(files), "took", time.Since(started))
 
 	return id, nil
 }
 
-// EnsureFresh returns the id of a scan which started at or after `notBefore`,
+// ensureFresh returns the id of a scan which started at or after `notBefore`,
 // running or joining a scan when needed.
-func (s *Server) EnsureFresh(ctx context.Context, notBefore time.Time) (watcher.ScanID, error) {
+func (s *Server) ensureFresh(ctx context.Context, notBefore time.Time) (watcher.ScanID, error) {
 	for {
 		s.mu.Lock()
 
@@ -179,6 +180,7 @@ func (s *Server) EnsureFresh(ctx context.Context, notBefore time.Time) (watcher.
 			return id, nil
 		}
 
+		// Check if we are already scanning, if yes join the scan.
 		if s.scanning {
 			done := s.scanDone
 			s.mu.Unlock()
@@ -189,26 +191,25 @@ func (s *Server) EnsureFresh(ctx context.Context, notBefore time.Time) (watcher.
 				return 0, ctx.Err()
 			}
 
+			// renter the function to determine the outcome
 			continue
 		}
+
+		// else... start the scan.
 
 		s.scanning = true
 		s.scanDone = make(chan struct{})
 		done := s.scanDone
 		s.mu.Unlock()
 
-		id, err := s.ScanOnce()
+		id, err := s.scanOnce()
 
 		s.mu.Lock()
 		s.scanning = false
 		s.mu.Unlock()
 		close(done)
 
-		if err != nil {
-			return 0, err
-		}
-
-		return id, nil
+		return id, errors.AddContext(err, "could not scan once")
 	}
 }
 
@@ -220,9 +221,9 @@ func (s *Server) Run(ctx context.Context) error {
 	flushTicker := time.NewTicker(stateFlushInterval)
 	defer flushTicker.Stop()
 
-	if _, err := s.EnsureFresh(ctx, time.Now()); err != nil {
+	if _, err := s.ensureFresh(ctx, time.Now()); err != nil {
 		if ctx.Err() != nil {
-			return s.Flush()
+			return s.SaveState()
 		}
 
 		return err
@@ -231,24 +232,24 @@ func (s *Server) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return s.Flush()
+			return s.SaveState()
 
 		case <-scanTicker.C:
-			if _, err := s.EnsureFresh(ctx, time.Now()); err != nil {
+			if _, err := s.ensureFresh(ctx, time.Now()); err != nil {
 				if ctx.Err() != nil {
-					return s.Flush()
+					return s.SaveState()
 				}
 				log.WarnE(err, "Scan failed.")
 			}
 
 		case <-flushTicker.C:
-			log.WarnE(s.Flush(), "Could not flush watcher state.")
+			log.WarnE(s.SaveState(), "Could not save state.")
 		}
 	}
 }
 
-// Flush writes the durable state to disk.
-func (s *Server) Flush() error {
+// SaveState writes the durable state to disk.
+func (s *Server) SaveState() error {
 	return watcher.SaveState(s.stateFile, s.tracker.Export())
 }
 

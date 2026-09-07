@@ -7,23 +7,20 @@ import (
 
 	"github.com/sdsc-ordes/quitsh/pkg/component/target"
 	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	"github.com/sdsc-ordes/quitsh/pkg/log"
 )
 
 // StateVersion is bumped whenever the on-disk format changes incompatibly.
 const StateVersion = 1
 
-const (
-	stateDirPerms  = 0o750
-	stateFilePerms = 0o600
-)
-
 // State is the durable part of the tracker.
 // Digests and change points are deliberately not persisted; they are rebuilt
 // by the scan performed at startup.
 type State struct {
-	Version     int                               `json:"version"`
-	LastSuccess map[target.ID]LastSuccessfulBuild `json:"lastSuccessfulBuild"`
-	LastRun     map[target.ID]LastRun             `json:"lastRun"`
+	Version     int                          `json:"version"`
+	LastSuccess map[target.ID]LastRunSuccess `json:"lastSuccessfulBuild"`
+	LastRun     map[target.ID]LastRun        `json:"lastRun"`
 }
 
 // Export returns the durable state of the tracker.
@@ -33,11 +30,11 @@ func (t *Tracker) Export() State {
 
 	s := State{
 		Version:     StateVersion,
-		LastSuccess: make(map[target.ID]LastSuccessfulBuild, len(t.lastSuccess)),
+		LastSuccess: make(map[target.ID]LastRunSuccess, len(t.lastSuccessfulRun)),
 		LastRun:     make(map[target.ID]LastRun, len(t.lastRun)),
 	}
 
-	for id, v := range t.lastSuccess {
+	for id, v := range t.lastSuccessfulRun {
 		s.LastSuccess[id] = v
 	}
 
@@ -53,11 +50,11 @@ func (t *Tracker) Import(s State) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.lastSuccess = map[target.ID]LastSuccessfulBuild{}
+	t.lastSuccessfulRun = map[target.ID]LastRunSuccess{}
 	t.lastRun = map[target.ID]LastRun{}
 
 	for id, v := range s.LastSuccess {
-		t.lastSuccess[id] = v
+		t.lastSuccessfulRun[id] = v
 	}
 
 	for id, v := range s.LastRun {
@@ -68,10 +65,12 @@ func (t *Tracker) Import(s State) {
 // LoadState reads the state file. A missing file yields an empty state.
 // A file written by an incompatible version is ignored (everything rebuilds).
 func LoadState(file string) (State, error) {
-	data, err := os.ReadFile(file)
-	if os.IsNotExist(err) {
+	if !fs.Exists(file) {
 		return State{Version: StateVersion}, nil
-	} else if err != nil {
+	}
+
+	data, err := os.ReadFile(file)
+	if err != nil {
 		return State{}, errors.AddContext(err, "could not read watcher state '%v'", file)
 	}
 
@@ -81,6 +80,8 @@ func LoadState(file string) (State, error) {
 	}
 
 	if s.Version != StateVersion {
+		log.Info("Incompatible state file in '$file'... (ignored)")
+
 		return State{Version: StateVersion}, nil
 	}
 
@@ -89,7 +90,8 @@ func LoadState(file string) (State, error) {
 
 // SaveState writes the state atomically (temp file + rename).
 func SaveState(file string, s State) error {
-	if err := os.MkdirAll(path.Dir(file), stateDirPerms); err != nil {
+	log.Infof("Save state to '%v'.", file)
+	if err := os.MkdirAll(path.Dir(file), fs.DefaultPermissionsDir); err != nil {
 		return errors.AddContext(err, "could not create dir for watcher state '%v'", file)
 	}
 
@@ -99,7 +101,7 @@ func SaveState(file string, s State) error {
 	}
 
 	tmp := file + ".tmp"
-	if e := os.WriteFile(tmp, data, stateFilePerms); e != nil {
+	if e := os.WriteFile(tmp, data, fs.DefaultPermissionsFile); e != nil {
 		return errors.AddContext(e, "could not write watcher state '%v'", tmp)
 	}
 

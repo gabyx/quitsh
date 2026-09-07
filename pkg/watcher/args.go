@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 	"time"
+
+	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
 )
 
 // Args are the settings for the watcher server and its clients.
@@ -17,10 +19,6 @@ import (
 type Args struct {
 	// Disabled turns change-tracking off. It is on by default; `--no-skip`
 	// switches it off for one invocation.
-	//
-	// NOTE: This is negated on purpose. The zero value of `Args` must mean
-	// "enabled", so that a config which never had defaults applied behaves
-	// like the documented default.
 	Disabled bool `yaml:"disabled"`
 
 	// Address is a gRPC target, e.g. `unix:///run/user/1000/quitsh/ab12.sock`
@@ -57,8 +55,6 @@ func DefaultExcludes() []string {
 		`^\.git($|/)`,
 		`^\.output($|/)`,
 		`^\.quitsh($|/)`,
-		`(^|/)result($|/)`,
-		`(^|/)node_modules($|/)`,
 		`(^|/)\.direnv($|/)`,
 		`(^|/)\.devenv($|/)`,
 	}
@@ -67,6 +63,8 @@ func DefaultExcludes() []string {
 // ResolveAddress returns the gRPC target for the repository at `rootDir`.
 // The socket file name is a hash because `sun_path` is limited to 108 characters.
 func (a *Args) ResolveAddress(rootDir string) string {
+	rootDir = fs.MakeAbsolute(rootDir)
+
 	if a.Address != "" {
 		return a.Address
 	}
@@ -104,11 +102,6 @@ const (
 	DefaultScanInterval = 2 * time.Second
 	DefaultTimeout      = 2 * time.Second
 )
-
-// IsEnabled reports whether change tracking is on.
-func (a *Args) IsEnabled() bool {
-	return a != nil && !a.Disabled
-}
 
 // ResolveHashMode returns the configured hash mode or the default.
 func (a *Args) ResolveHashMode() HashMode {

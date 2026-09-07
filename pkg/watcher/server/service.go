@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/sdsc-ordes/quitsh/pkg/component/target"
+	"github.com/sdsc-ordes/quitsh/pkg/errors"
 	"github.com/sdsc-ordes/quitsh/pkg/log"
 	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 	watcherv1 "github.com/sdsc-ordes/quitsh/pkg/watcher/proto"
+	"golang.org/x/sync/errgroup"
 
 	"google.golang.org/grpc"
 )
 
 // pinTTL is how long a handed-out scan id stays resolvable for a reporting
 // client. Builds longer than this simply do not get recorded.
-const pinTTL = time.Hour
+const pinTTL = 6 * time.Hour
 
 type service struct {
 	watcherv1.UnimplementedWatcherServer
@@ -28,7 +30,7 @@ type service struct {
 func (s *Server) Serve(ctx context.Context, address string, version string) error {
 	listener, err := Listen(address)
 	if err != nil {
-		return err
+		return errors.AddContext(err, "Could not listen on '%v'.", address)
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -41,25 +43,20 @@ func (s *Server) Serve(ctx context.Context, address string, version string) erro
 		shutdown: cancel,
 	})
 
-	loopDone := make(chan error, 1)
-	go func() { loopDone <- s.Run(ctx) }()
+	errG, ctx := errgroup.WithContext(ctx)
 
-	serveDone := make(chan error, 1)
-	go func() { serveDone <- grpcServer.Serve(listener) }()
+	errG.Go(func() error { return s.Run(ctx) })
+	errG.Go(func() error { return grpcServer.Serve(listener) })
+	errG.Go(func() error {
+		<-ctx.Done()
+		grpcServer.GracefulStop()
+
+		return nil
+	})
 
 	log.Info("Watcher server listening.", "address", address, "root", s.rootDir)
 
-	select {
-	case <-ctx.Done():
-	case err = <-serveDone:
-		cancel()
-	}
-
-	grpcServer.GracefulStop()
-
-	if e := <-loopDone; e != nil && err == nil {
-		err = e
-	}
+	err = errG.Wait()
 
 	log.Info("Watcher server stopped.")
 
@@ -72,7 +69,7 @@ func (s *service) GetStatus(
 ) (*watcherv1.GetStatusResponse, error) {
 	notBefore := time.Now().Add(-time.Duration(req.GetMaxAgeMs()) * time.Millisecond)
 
-	scanID, err := s.srv.EnsureFresh(ctx, notBefore)
+	scanID, err := s.srv.ensureFresh(ctx, notBefore)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +83,10 @@ func (s *service) GetStatus(
 
 	// Keep the handed-out scan id resolvable until the client reports.
 	s.srv.Tracker().Pin(scanID)
-	time.AfterFunc(pinTTL, func() { s.srv.Tracker().Unpin(scanID) })
+	time.AfterFunc(pinTTL,
+		func() {
+			s.srv.Tracker().Unpin(scanID)
+		})
 
 	stats := s.srv.Stats()
 	resp := &watcherv1.GetStatusResponse{
@@ -134,12 +134,13 @@ func (s *service) ReportResult(
 	_ context.Context,
 	req *watcherv1.ReportResultRequest,
 ) (*watcherv1.ReportResultResponse, error) {
-	results := make(map[target.ID]bool, len(req.GetResults()))
+	targetsSucc := make(map[target.ID]bool, len(req.GetResults()))
+
 	for _, r := range req.GetResults() {
-		results[target.ID(r.GetTargetId())] = r.GetStatus() == watcherv1.Status_STATUS_SUCCESS
+		targetsSucc[target.ID(r.GetTargetId())] = r.GetStatus() == watcherv1.Status_STATUS_SUCCESS
 	}
 
-	notRecorded := s.srv.Tracker().Report(watcher.ScanID(req.GetScanId()), results)
+	notRecorded := s.srv.Tracker().Report(watcher.ScanID(req.GetScanId()), targetsSucc)
 
 	resp := &watcherv1.ReportResultResponse{
 		NotRecorded: make([]string, 0, len(notRecorded)),
@@ -155,7 +156,7 @@ func (s *service) Rescan(
 	ctx context.Context,
 	_ *watcherv1.RescanRequest,
 ) (*watcherv1.RescanResponse, error) {
-	id, err := s.srv.EnsureFresh(ctx, time.Now())
+	id, err := s.srv.ensureFresh(ctx, time.Now())
 	if err != nil {
 		return nil, err
 	}
