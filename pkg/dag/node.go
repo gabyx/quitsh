@@ -38,6 +38,11 @@ type (
 		// Marking the target to not run and skip.
 		Cancel bool
 
+		// Skip marks a target whose inputs did not change since its last
+		// successful build. Its runners are not executed, but unlike `Cancel`
+		// this counts as a success for dependents.
+		Skip bool
+
 		// All runner statuses for the steps.
 		Runners RunnerStatuses
 	}
@@ -90,9 +95,11 @@ func (e *TargetExecStatus) AddRunnerStatus() *RunnerStatus {
 }
 
 // Status determines the overall status of the target.
+// Skipped runners count as successful: a target which was up to date must not
+// cancel the targets depending on it.
 func (n *TargetNode) Status() ExecStatus {
 	for _, r := range n.Execution.Runners {
-		if r.Status != ExecStatusSuccess {
+		if r.Status != ExecStatusSuccess && r.Status != ExecStatusSkipped {
 			return ExecStatusFailed
 		}
 	}

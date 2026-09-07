@@ -59,6 +59,8 @@ type (
 		nodeCount int
 
 		inputPathChanges []string
+
+		watcher *WatcherSession
 	}
 )
 
@@ -143,17 +145,27 @@ func defineExecutionOrder(
 		return nil, nil, err
 	}
 
-	// Make all input path changes absolute.
-	for i := range o.inputPathChanges {
-		o.inputPathChanges[i] = fs.MakeAbsoluteTo(rootDir, o.inputPathChanges[i])
+	if o.watcher != nil {
+		// The watcher answers per target; dependency propagation stays here.
+		err = g.SolveWatcherChanges(queryWatcher(o.watcher, allNodes))
+	} else {
+		// Make all input path changes absolute.
+		for i := range o.inputPathChanges {
+			o.inputPathChanges[i] = fs.MakeAbsoluteTo(rootDir, o.inputPathChanges[i])
+		}
+		log.Debug("Changed paths.", "paths", o.inputPathChanges)
+		err = g.SolveInputChanges(allInputs, allComps, &regexCache, o.inputPathChanges)
 	}
-	log.Debug("Changed paths.", "paths", o.inputPathChanges)
-	err = g.SolveInputChanges(allInputs, allComps, &regexCache, o.inputPathChanges)
+
 	if err != nil {
 		return nil, nil, err
 	}
 
 	targets, prios = g.NodesToPriorityList()
+
+	if o.watcher != nil {
+		markSkipped(targets)
+	}
 
 	return targets, prios, nil
 }

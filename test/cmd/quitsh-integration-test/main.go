@@ -13,6 +13,7 @@ import (
 	listcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/list"
 	processcompose "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/process-compose"
 	rootcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/root"
+	servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"
 	"github.com/sdsc-ordes/quitsh/pkg/common"
 	"github.com/sdsc-ordes/quitsh/pkg/component/query"
 	"github.com/sdsc-ordes/quitsh/pkg/component/stage"
@@ -22,6 +23,7 @@ import (
 	"github.com/sdsc-ordes/quitsh/pkg/log"
 	execrunnner "github.com/sdsc-ordes/quitsh/pkg/runner/exec"
 	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 	echorunner "github.com/sdsc-ordes/quitsh/test/runners/echo_test"
 	gorunner "github.com/sdsc-ordes/quitsh/test/runners/go_test"
 	settings "github.com/sdsc-ordes/quitsh/test/runners/settings_test"
@@ -48,6 +50,9 @@ type Config struct {
 
 	// Here you can place your own additional global config stuff
 	Build settings.BuildSettings `yaml:"build"`
+
+	// The change-tracking watcher settings (`quitsh server`).
+	Watcher watcher.Args `yaml:"watcher"`
 
 	// A simple test settings which gets env. replaced.
 	ValWithEnv string `yaml:"valWithEnv"`
@@ -98,6 +103,11 @@ func main() {
 				return &cc.Commands.DispatchArgs
 			},
 		),
+		cli.WithWatcher(func(c config.IConfig) *watcher.Args {
+			cc := common.Cast[*Config](c)
+
+			return &cc.Watcher
+		}),
 	)
 	log.PanicE(err, "Could not setup cli.")
 
@@ -115,6 +125,7 @@ func main() {
 	exstage.AddCmdGeneral(cli, cli.RootCmd(), &args.Commands.ExecArgs)
 	exstage.AddCmdAlias(cli, cli.RootCmd(), stage.Stage("build"), &args.Commands.ExecArgs)
 	configcmd.AddCmd(cli.RootCmd(), &args)
+	servercmd.AddCmd(cli, cli.RootCmd())
 	listcmd.AddCmd(cli, cli.RootCmd())
 	processcompose.AddCmd(cli, cli.RootCmd(), flakeDir)
 

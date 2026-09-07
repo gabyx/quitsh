@@ -1,66 +1,101 @@
 # `quitsh server` Change-Tracking Watcher — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or
+> superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add an optional local gRPC server (`quitsh server`) that tracks per-target input changes so `quitsh` can skip targets that were already built successfully.
+**Goal:** Add an optional local gRPC server (`quitsh server`) that tracks
+per-target input changes so `quitsh` can skip targets that were already built
+successfully.
 
-**Architecture:** The server periodically rescans the repository, computes a content digest per input set, and stores a `last_successful_build` per target. It is a pure per-target dirty oracle — it knows nothing about target dependencies. Clients query it, seed `node.Inputs.Changed` in `pkg/dag`, let the existing forward propagation run, skip unchanged nodes, and report results back.
+**Architecture:** The server periodically rescans the repository, computes a
+content digest per input set, and stores a `last_successful_build` per target.
+It is a pure per-target dirty oracle — it knows nothing about target
+dependencies. Clients query it, seed `node.Inputs.Changed` in `pkg/dag`, let the
+existing forward propagation run, skip unchanged nodes, and report results back.
 
-**Tech Stack:** Go 1.26, gRPC (`google.golang.org/grpc`) over a unix socket, protobuf, `charlievieth/fastwalk`, `spf13/cobra`, `creasty/defaults`, Nix dev shells.
+**Tech Stack:** Go 1.26, gRPC (`google.golang.org/grpc`) over a unix socket,
+protobuf, `charlievieth/fastwalk`, `spf13/cobra`, `creasty/defaults`, Nix dev
+shells.
 
-**Design spec:** `docs/features/specs/2026-09-07-watcher-server-design.md` — read it before starting.
+**Design spec:** `docs/features/specs/2026-09-07-watcher-server-design.md` —
+read it before starting.
 
 ## Global Constraints
 
-- Module path is `github.com/sdsc-ordes/quitsh`; the CLI in `tools/cli` is a separate module (`quitsh-cli`).
+- Module path is `github.com/sdsc-ordes/quitsh`; the CLI in `tools/cli` is a
+  separate module (`quitsh-cli`).
 - Go version floor: `go 1.26.0` (see `go.mod`). Do not raise it.
-- Unit test files start with `//go:build test && (test_small || test_all)` and live in the same package as the code under test.
-- Integration test files start with `//go:build test && integration` and live in `test/`.
-- Run unit tests with: `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
-- Lint with `just lint`; format with `just format`. `golangci-lint` runs `mnd` (magic numbers) — name constants or append `//nolint:mnd // intentional.` as the codebase already does.
-- Errors: use `pkg/errors` (`errors.New(format, args...)`, `errors.AddContext(err, format, args...)`, `errors.Combine`). Never `fmt.Errorf`.
-- Logging: use `pkg/log` with key-value args, e.g. `log.Info("Scan done.", "files", n)`.
-- Config structs use `yaml:"..."` plus `default:"..."` tags consumed by `creasty/defaults`.
+- Unit test files start with `//go:build test && (test_small || test_all)` and
+  live in the same package as the code under test.
+- Integration test files start with `//go:build test && integration` and live in
+  `test/`.
+- Run unit tests with:
+  `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
+- Lint with `just lint`; format with `just format`. `golangci-lint` runs `mnd`
+  (magic numbers) — name constants or append `//nolint:mnd // intentional.` as
+  the codebase already does.
+- Errors: use `pkg/errors` (`errors.New(format, args...)`,
+  `errors.AddContext(err, format, args...)`, `errors.Combine`). Never
+  `fmt.Errorf`.
+- Logging: use `pkg/log` with key-value args, e.g.
+  `log.Info("Scan done.", "files", n)`.
+- Config structs use `yaml:"..."` plus `default:"..."` tags consumed by
+  `creasty/defaults`.
 - **Git identity is not configured in this repo.** Every commit must be run as:
   `git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.github.com' commit -m "..."`
-- Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`).
-- Accepted trade-off: `pkg/dag` imports `pkg/watcher/client`, so gRPC links into every quitsh binary. This was decided explicitly; do not introduce an interface to avoid it.
+- Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`,
+  `chore:`, `test:`).
+- Accepted trade-off: `pkg/dag` imports `pkg/watcher/client`, so gRPC links into
+  every quitsh binary. This was decided explicitly; do not introduce an
+  interface to avoid it.
 
 ## File Structure
 
-| Path | Responsibility |
-|---|---|
-| `pkg/watcher/args.go` | `Args` config struct, address/state-file resolution, default excludes |
-| `pkg/watcher/hash.go` | `Stamp`, `Digest`, `HashMode`, `Hasher` implementations |
-| `pkg/watcher/inputset.go` | `InputSet` matching (regexes + base dir), assignment of files to input sets |
-| `pkg/watcher/tracker.go` | `Tracker`: digests, change points, status derivation, reporting, pinning |
-| `pkg/watcher/state.go` | Persistence of `last_successful_build` / `last_run` (atomic write) |
-| `pkg/watcher/version.go` | `ProtocolVersion` constant |
-| `pkg/watcher/selector.go` | `ArgsSelector` for the CLI option |
-| `pkg/watcher/scan/scan.go` | `fastwalk` walk + excludes, incremental re-hash → file stamps |
-| `pkg/watcher/proto/watcher.proto` | `quitsh.watcher.v1` schema |
-| `pkg/watcher/proto/*.pb.go` | Generated code (checked in) |
-| `pkg/watcher/server/server.go` | Scan loop, freshness/join, tracker ownership |
-| `pkg/watcher/server/service.go` | gRPC service implementation |
-| `pkg/watcher/server/socket.go` | Socket lifecycle (stale detection, listener, shutdown) |
-| `pkg/watcher/client/client.go` | gRPC client, degrades when unreachable |
-| `pkg/dag/inputs-resolve.go` | `ResolveTargetInputs` — shared target→input-set resolution |
-| `pkg/dag/watcher.go` | `WithWatcher`, `WatcherSession`, `SolveWatcherChanges` |
-| `pkg/cli/cmd/server/*.go` | `quitsh server serve\|status\|stop\|reset` |
-| `test/watcher_test.go` | Integration test over a real unix socket |
+| Path                              | Responsibility                                                              |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| `pkg/watcher/args.go`             | `Args` config struct, address/state-file resolution, default excludes       |
+| `pkg/watcher/hash.go`             | `Stamp`, `Digest`, `HashMode`, `Hasher` implementations                     |
+| `pkg/watcher/inputset.go`         | `InputSet` matching (regexes + base dir), assignment of files to input sets |
+| `pkg/watcher/tracker.go`          | `Tracker`: digests, change points, status derivation, reporting, pinning    |
+| `pkg/watcher/state.go`            | Persistence of `last_successful_build` / `last_run` (atomic write)          |
+| `pkg/watcher/version.go`          | `ProtocolVersion` constant                                                  |
+| `pkg/watcher/selector.go`         | `ArgsSelector` for the CLI option                                           |
+| `pkg/watcher/scan/scan.go`        | `fastwalk` walk + excludes, incremental re-hash → file stamps               |
+| `pkg/watcher/proto/watcher.proto` | `quitsh.watcher.v1` schema                                                  |
+| `pkg/watcher/proto/*.pb.go`       | Generated code (checked in)                                                 |
+| `pkg/watcher/server/server.go`    | Scan loop, freshness/join, tracker ownership                                |
+| `pkg/watcher/server/service.go`   | gRPC service implementation                                                 |
+| `pkg/watcher/server/socket.go`    | Socket lifecycle (stale detection, listener, shutdown)                      |
+| `pkg/watcher/client/client.go`    | gRPC client, degrades when unreachable                                      |
+| `pkg/dag/inputs-resolve.go`       | `ResolveTargetInputs` — shared target→input-set resolution                  |
+| `pkg/dag/watcher.go`              | `WithWatcher`, `WatcherSession`, `SolveWatcherChanges`                      |
+| `pkg/cli/cmd/server/*.go`         | `quitsh server serve\|status\|stop\|reset`                                  |
+| `test/watcher_test.go`            | Integration test over a real unix socket                                    |
 
 ---
 
 ### Task 1: Watcher config and hashing primitives
 
 **Files:**
+
 - Create: `pkg/watcher/args.go`
 - Create: `pkg/watcher/hash.go`
 - Test: `pkg/watcher/hash_test.go`
 
 **Interfaces:**
+
 - Consumes: nothing.
-- Produces: `watcher.Args`, `watcher.ScanID` (`int64`), `watcher.Digest` (`uint64`), `watcher.Stamp`, `watcher.HashMode`, `watcher.Hasher` interface with `Stamp(absPath string, modTimeNs int64, size int64, prev Stamp, prevOk bool) (Stamp, error)`, `watcher.NewHasher(HashMode) (Hasher, error)`, `watcher.DigestOf(sortedPaths []string, stamps map[string]Stamp) Digest`, `watcher.DefaultExcludes() []string`, `(*Args).ResolveAddress(rootDir string) string`, `(*Args).ResolveStateFile(rootDir string) string`.
+- Produces: `watcher.Args`, `watcher.ScanID` (`int64`), `watcher.Digest`
+  (`uint64`), `watcher.Stamp`, `watcher.HashMode`, `watcher.Hasher` interface
+  with
+  `Stamp(absPath string, modTimeNs int64, size int64, prev Stamp, prevOk bool) (Stamp, error)`,
+  `watcher.NewHasher(HashMode) (Hasher, error)`,
+  `watcher.DigestOf(sortedPaths []string, stamps map[string]Stamp) Digest`,
+  `watcher.DefaultExcludes() []string`,
+  `(*Args).ResolveAddress(rootDir string) string`,
+  `(*Args).ResolveStateFile(rootDir string) string`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -132,8 +167,8 @@ func TestUnknownHashMode(t *testing.T) {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
-Expected: FAIL — `undefined: NewHasher`, `undefined: HashModeMTimeSize`, …
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v` Expected: FAIL
+— `undefined: NewHasher`, `undefined: HashModeMTimeSize`, …
 
 - [ ] **Step 3: Write `pkg/watcher/hash.go`**
 
@@ -267,8 +302,9 @@ import (
 // Args are the settings for the watcher server and its clients.
 // Embed this into your own config and wire it with `cli.WithWatcher`.
 type Args struct {
-	// Enabled turns change-tracking on for this invocation.
-	Enabled bool `yaml:"enabled" default:"false"`
+	// Enabled turns change-tracking on. It is on by default; `--no-skip`
+	// switches it off for one invocation.
+	Enabled bool `yaml:"enabled" default:"true"`
 
 	// Address is a gRPC target, e.g. `unix:///run/user/1000/quitsh/ab12.sock`
 	// or `tcp://127.0.0.1:7777`. Empty means the default unix socket.
@@ -348,8 +384,8 @@ func (a *Args) ResolveExcludes() []string {
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
-Expected: PASS — 4 tests.
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v` Expected: PASS
+— 4 tests.
 
 - [ ] **Step 6: Commit**
 
@@ -364,12 +400,17 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 2: Repository scanner
 
 **Files:**
+
 - Create: `pkg/watcher/scan/scan.go`
 - Test: `pkg/watcher/scan/scan_test.go`
 
 **Interfaces:**
+
 - Consumes: `watcher.Hasher`, `watcher.Stamp`, `watcher.NewHasher` (Task 1).
-- Produces: `scan.Scanner`, `scan.New(rootDir string, hasher watcher.Hasher, excludes []string) (*Scanner, error)`, `(*Scanner).Scan(prev map[string]watcher.Stamp) (map[string]watcher.Stamp, error)` returning repo-relative slash paths → stamps.
+- Produces: `scan.Scanner`,
+  `scan.New(rootDir string, hasher watcher.Hasher, excludes []string) (*Scanner, error)`,
+  `(*Scanner).Scan(prev map[string]watcher.Stamp) (map[string]watcher.Stamp, error)`
+  returning repo-relative slash paths → stamps.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -474,12 +515,13 @@ func TestScanDropsDeletedFiles(t *testing.T) {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/scan/... -v`
-Expected: FAIL — `undefined: New`, `undefined: Scanner`.
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/scan/... -v` Expected:
+FAIL — `undefined: New`, `undefined: Scanner`.
 
 - [ ] **Step 3: Write `pkg/watcher/scan/scan.go`**
 
-Note: `fastwalk.Walk` runs the callback on multiple goroutines, so the result map is guarded by a mutex, exactly as `pkg/filesystem/glob.go` does.
+Note: `fastwalk.Walk` runs the callback on multiple goroutines, so the result
+map is guarded by a mutex, exactly as `pkg/filesystem/glob.go` does.
 
 ```go
 // Package scan walks a repository and stamps every tracked file.
@@ -601,8 +643,8 @@ func (s *Scanner) RootDir() string {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/scan/... -v`
-Expected: PASS — 4 tests.
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/scan/... -v` Expected:
+PASS — 4 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -617,14 +659,24 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 3: Input-set matching and assignment
 
 **Files:**
+
 - Create: `pkg/watcher/inputset.go`
 - Test: `pkg/watcher/inputset_test.go`
 
 **Interfaces:**
-- Consumes: `watcher.Stamp`, `watcher.Digest`, `watcher.DigestOf` (Task 1); `input.Config`, `input.ID` from `pkg/component/input`.
-- Produces: `watcher.InputSet`, `watcher.NewInputSet(cfg *input.Config, rootDir string) (*InputSet, error)`, `(*InputSet).Matches(relPath string) bool`, `watcher.InputSets` (`map[input.ID]*InputSet`), `(InputSets).Assign(files map[string]Stamp) map[input.ID][]string` returning **sorted** paths per set.
 
-Matching mirrors `pkg/dag/execution-order.go:determineChangedPaths`: the path is made relative to the input's `BaseDir`, then `include && !exclude` decides, with full-match regexes (`recache.NewCache(true)`).
+- Consumes: `watcher.Stamp`, `watcher.Digest`, `watcher.DigestOf` (Task 1);
+  `input.Config`, `input.ID` from `pkg/component/input`.
+- Produces: `watcher.InputSet`,
+  `watcher.NewInputSet(cfg *input.Config, rootDir string) (*InputSet, error)`,
+  `(*InputSet).Matches(relPath string) bool`, `watcher.InputSets`
+  (`map[input.ID]*InputSet`),
+  `(InputSets).Assign(files map[string]Stamp) map[input.ID][]string` returning
+  **sorted** paths per set.
+
+Matching mirrors `pkg/dag/execution-order.go:determineChangedPaths`: the path is
+made relative to the input's `BaseDir`, then `include && !exclude` decides, with
+full-match regexes (`recache.NewCache(true)`).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -816,12 +868,19 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 4: Tracker — digests, change points and status derivation
 
 **Files:**
+
 - Create: `pkg/watcher/tracker.go`
 - Test: `pkg/watcher/tracker_test.go`
 
 **Interfaces:**
+
 - Consumes: `InputSets`, `Stamp`, `Digest`, `DigestOf`, `ScanID` (Tasks 1, 3).
-- Produces: `watcher.Tracker`, `watcher.NewTracker() *Tracker`, `(*Tracker).SetComponents(sets InputSets, targets map[target.ID][]input.ID)`, `(*Tracker).Update(scanID ScanID, files map[string]Stamp)`, `(*Tracker).DigestAt(id input.ID, scanID ScanID) (Digest, bool)`, `(*Tracker).Status(ids []target.ID) []TargetStatus`, and the types `ChangePoint`, `LastSuccessfulBuild`, `LastRun`, `TargetStatus`.
+- Produces: `watcher.Tracker`, `watcher.NewTracker() *Tracker`,
+  `(*Tracker).SetComponents(sets InputSets, targets map[target.ID][]input.ID)`,
+  `(*Tracker).Update(scanID ScanID, files map[string]Stamp)`,
+  `(*Tracker).DigestAt(id input.ID, scanID ScanID) (Digest, bool)`,
+  `(*Tracker).Status(ids []target.ID) []TargetStatus`, and the types
+  `ChangePoint`, `LastSuccessfulBuild`, `LastRun`, `TargetStatus`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -922,11 +981,15 @@ func TestSetComponentsDropsVanishedTargets(t *testing.T) {
 }
 ```
 
-Note: `TestSetComponentsDropsVanishedTargets` uses `Report`, added in Task 5. Expect it to fail compilation until Task 5 lands — implement `Report` in Task 5 and re-run this file then. To keep Task 4 green on its own, comment that single test out and re-enable it as Step 1 of Task 5.
+Note: `TestSetComponentsDropsVanishedTargets` uses `Report`, added in Task 5.
+Expect it to fail compilation until Task 5 lands — implement `Report` in Task 5
+and re-run this file then. To keep Task 4 green on its own, comment that single
+test out and re-enable it as Step 1 of Task 5.
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -run 'Status|Update|DigestAt' -v`
+Run:
+`go test -tags 'debug test test_small' ./pkg/watcher/... -run 'Status|Update|DigestAt' -v`
 Expected: FAIL — `undefined: NewTracker`.
 
 - [ ] **Step 3: Write `pkg/watcher/tracker.go`**
@@ -1168,8 +1231,10 @@ func (t *Tracker) pruneLocked() {
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -run 'Status|Update|DigestAt' -v`
-Expected: PASS — 4 tests (the `SetComponents` test stays commented out until Task 5).
+Run:
+`go test -tags 'debug test test_small' ./pkg/watcher/... -run 'Status|Update|DigestAt' -v`
+Expected: PASS — 4 tests (the `SetComponents` test stays commented out until
+Task 5).
 
 - [ ] **Step 6: Commit**
 
@@ -1184,16 +1249,22 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 5: Tracker — reporting, pinning and reset
 
 **Files:**
+
 - Modify: `pkg/watcher/tracker.go`
 - Modify: `pkg/watcher/tracker_test.go`
 
 **Interfaces:**
+
 - Consumes: everything from Task 4.
-- Produces: `(*Tracker).Report(scanID ScanID, results map[target.ID]bool) (notRecorded []target.ID)`, `(*Tracker).Pin(scanID ScanID)`, `(*Tracker).Unpin(scanID ScanID)`, `(*Tracker).Reset(ids ...target.ID)`, `(*Tracker).LastScan() ScanID`.
+- Produces:
+  `(*Tracker).Report(scanID ScanID, results map[target.ID]bool) (notRecorded []target.ID)`,
+  `(*Tracker).Pin(scanID ScanID)`, `(*Tracker).Unpin(scanID ScanID)`,
+  `(*Tracker).Reset(ids ...target.ID)`, `(*Tracker).LastScan() ScanID`.
 
 - [ ] **Step 1: Re-enable and extend the tests**
 
-Un-comment `TestSetComponentsDropsVanishedTargets` from Task 4 and append to `pkg/watcher/tracker_test.go`:
+Un-comment `TestSetComponentsDropsVanishedTargets` from Task 4 and append to
+`pkg/watcher/tracker_test.go`:
 
 ```go
 func TestReportSuccessMakesTargetClean(t *testing.T) {
@@ -1295,8 +1366,8 @@ func TestPinKeepsHistoryForLongBuilds(t *testing.T) {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
-Expected: FAIL — `tr.Report undefined`, `tr.Pin undefined`, `tr.Reset undefined`.
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v` Expected: FAIL
+— `tr.Report undefined`, `tr.Pin undefined`, `tr.Reset undefined`.
 
 - [ ] **Step 3: Append the implementation to `pkg/watcher/tracker.go`**
 
@@ -1415,8 +1486,8 @@ func (t *Tracker) LastScan() ScanID {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
-Expected: PASS — all tracker, input-set and hash tests.
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v` Expected: PASS
+— all tracker, input-set and hash tests.
 
 - [ ] **Step 5: Commit**
 
@@ -1431,12 +1502,17 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 6: Tracker persistence
 
 **Files:**
+
 - Create: `pkg/watcher/state.go`
 - Test: `pkg/watcher/state_test.go`
 
 **Interfaces:**
+
 - Consumes: `Tracker`, `LastSuccessfulBuild`, `LastRun` (Tasks 4, 5).
-- Produces: `watcher.State`, `(*Tracker).Export() State`, `(*Tracker).Import(s State)`, `watcher.SaveState(file string, s State) error`, `watcher.LoadState(file string) (State, error)` (a missing file yields an empty state and no error).
+- Produces: `watcher.State`, `(*Tracker).Export() State`,
+  `(*Tracker).Import(s State)`, `watcher.SaveState(file string, s State) error`,
+  `watcher.LoadState(file string) (State, error)` (a missing file yields an
+  empty state and no error).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1626,8 +1702,8 @@ func SaveState(file string, s State) error {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v`
-Expected: PASS.
+Run: `go test -tags 'debug test test_small' ./pkg/watcher/... -v` Expected:
+PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -1641,26 +1717,34 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 
 ### Task 7: Shared target → input-set resolution
 
-The server must resolve `self::x` input ids and apply the "no `inputs:` means the
-whole component" default exactly like the DAG does, or the two sides would
+The server must resolve `self::x` input ids and apply the "no `inputs:` means
+the whole component" default exactly like the DAG does, or the two sides would
 disagree about what a target depends on. `constructNodes` already implements
 this, so expose it instead of duplicating it.
 
 **Files:**
+
 - Create: `pkg/dag/inputs-resolve.go`
 - Test: `pkg/dag/inputs-resolve_test.go`
 
 **Interfaces:**
-- Consumes: unexported `constructNodes(components, targetSelection, rootDir, resolveInputs)` in `pkg/dag/execution-order.go:160`.
-- Produces: `dag.ResolveTargetInputs(components []*component.Component, rootDir string) (targets map[target.ID][]input.ID, inputs map[input.ID]*input.Config, err error)`. Every returned `input.Config` has an absolute `BaseDir`. Component-wide inputs (targets without an `inputs:` key) are returned as a synthesized config with the pattern `^.*$` and the component root as base dir.
+
+- Consumes: unexported
+  `constructNodes(components, targetSelection, rootDir, resolveInputs)` in
+  `pkg/dag/execution-order.go:160`.
+- Produces:
+  `dag.ResolveTargetInputs(components []*component.Component, rootDir string) (targets map[target.ID][]input.ID, inputs map[input.ID]*input.Config, err error)`.
+  Every returned `input.Config` has an absolute `BaseDir`. Component-wide inputs
+  (targets without an `inputs:` key) are returned as a synthesized config with
+  the pattern `^.*$` and the component root as base dir.
 
 - [ ] **Step 1: Write the failing test**
 
 Create `pkg/dag/inputs-resolve_test.go`. It reuses the fixture helpers already
 used by `pkg/dag/execution-order_test.go` — open that file first and mirror how
-it constructs components (`newComp`/literal `component.Config` values); build two
-components, one target with `inputs: ["self::srcs"]` and one target without any
-`inputs`.
+it constructs components (`newComp`/literal `component.Config` values); build
+two components, one target with `inputs: ["self::srcs"]` and one target without
+any `inputs`.
 
 ```go
 //go:build test && (test_small || test_all)
@@ -1745,7 +1829,8 @@ Add the imports `path`, `github.com/sdsc-ordes/quitsh/pkg/component`.
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `go test -tags 'debug test test_small' ./pkg/dag/... -run ResolveTargetInputs -v`
+Run:
+`go test -tags 'debug test test_small' ./pkg/dag/... -run ResolveTargetInputs -v`
 Expected: FAIL — `undefined: ResolveTargetInputs`.
 
 - [ ] **Step 4: Write `pkg/dag/inputs-resolve.go`**
@@ -1808,12 +1893,14 @@ func ResolveTargetInputs(
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `go test -tags 'debug test test_small' ./pkg/dag/... -run ResolveTargetInputs -v`
+Run:
+`go test -tags 'debug test test_small' ./pkg/dag/... -run ResolveTargetInputs -v`
 Expected: PASS — 2 tests.
 
 - [ ] **Step 6: Run the whole dag suite to check nothing regressed**
 
-Run: `go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
+Run:
+`go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
 Expected: PASS.
 
 - [ ] **Step 7: Commit**
@@ -1829,15 +1916,26 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 8: Protobuf schema and code generation
 
 **Files:**
+
 - Create: `pkg/watcher/proto/watcher.proto`
-- Create (generated, checked in): `pkg/watcher/proto/watcher.pb.go`, `pkg/watcher/proto/watcher_grpc.pb.go`
-- Modify: `tools/nix/pkgs/shells.parts.nix` (add codegen tools to the `general` shell)
+- Create (generated, checked in): `pkg/watcher/proto/watcher.pb.go`,
+  `pkg/watcher/proto/watcher_grpc.pb.go`
+- Modify: `tools/nix/pkgs/shells.parts.nix` (add codegen tools to the `general`
+  shell)
 - Modify: `justfile` (add the `generate-proto` recipe)
 - Modify: `go.mod`, `go.sum`
 
 **Interfaces:**
+
 - Consumes: nothing.
-- Produces: Go package `watcherv1` at `github.com/sdsc-ordes/quitsh/pkg/watcher/proto` with `WatcherClient`, `WatcherServer`, `RegisterWatcherServer`, `UnimplementedWatcherServer`, and the message types `GetStatusRequest/Response`, `TargetStatus`, `LastRun`, `TargetResult`, `ReportResultRequest/Response`, `RescanRequest/Response`, `ResetRequest/Response`, `InfoRequest/Response`, `ShutdownRequest/Response`, plus `Status` enum values `STATUS_UNSPECIFIED`, `STATUS_SUCCESS`, `STATUS_FAILED`.
+- Produces: Go package `watcherv1` at
+  `github.com/sdsc-ordes/quitsh/pkg/watcher/proto` with `WatcherClient`,
+  `WatcherServer`, `RegisterWatcherServer`, `UnimplementedWatcherServer`, and
+  the message types `GetStatusRequest/Response`, `TargetStatus`, `LastRun`,
+  `TargetResult`, `ReportResultRequest/Response`, `RescanRequest/Response`,
+  `ResetRequest/Response`, `InfoRequest/Response`, `ShutdownRequest/Response`,
+  plus `Status` enum values `STATUS_UNSPECIFIED`, `STATUS_SUCCESS`,
+  `STATUS_FAILED`.
 
 - [ ] **Step 1: Write `pkg/watcher/proto/watcher.proto`**
 
@@ -1981,12 +2079,12 @@ Run (inside the dev shell, i.e. `just develop` or `nix develop ./tools/nix`):
 just generate-proto
 ```
 
-Expected: `pkg/watcher/proto/watcher.pb.go` and `pkg/watcher/proto/watcher_grpc.pb.go` appear.
+Expected: `pkg/watcher/proto/watcher.pb.go` and
+`pkg/watcher/proto/watcher_grpc.pb.go` appear.
 
 - [ ] **Step 6: Verify it compiles**
 
-Run: `go build ./...`
-Expected: no output (success).
+Run: `go build ./...` Expected: no output (success).
 
 - [ ] **Step 7: Commit**
 
@@ -2001,12 +2099,23 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 9: Server core — scan loop, freshness and re-discovery
 
 **Files:**
+
 - Create: `pkg/watcher/server/server.go`
 - Test: `pkg/watcher/server/server_test.go`
 
 **Interfaces:**
-- Consumes: `watcher.Args`, `watcher.Tracker`, `watcher.ScanID`, `watcher.Stamp`, `watcher.NewHasher`, `watcher.LoadState`, `watcher.SaveState` (Tasks 1–6); `scan.New` (Task 2); `dag.ResolveTargetInputs` (Task 7).
-- Produces: `server.DiscoverFunc` (`func() ([]*component.Component, error)`), `server.New(args *watcher.Args, rootDir string, configFileName string, discover DiscoverFunc) (*Server, error)`, `(*Server).ScanOnce() (watcher.ScanID, error)`, `(*Server).EnsureFresh(ctx context.Context, notBefore time.Time) (watcher.ScanID, error)`, `(*Server).Run(ctx context.Context) error`, `(*Server).Tracker() *watcher.Tracker`, `(*Server).Flush() error`, `(*Server).Stats() Stats` where `Stats{ScanID watcher.ScanID; StartedAt time.Time; Duration time.Duration; Files int; Targets int; RootDir string}`.
+
+- Consumes: `watcher.Args`, `watcher.Tracker`, `watcher.ScanID`,
+  `watcher.Stamp`, `watcher.NewHasher`, `watcher.LoadState`, `watcher.SaveState`
+  (Tasks 1–6); `scan.New` (Task 2); `dag.ResolveTargetInputs` (Task 7).
+- Produces: `server.DiscoverFunc` (`func() ([]*component.Component, error)`),
+  `server.New(args *watcher.Args, rootDir string, configFileName string, discover DiscoverFunc) (*Server, error)`,
+  `(*Server).ScanOnce() (watcher.ScanID, error)`,
+  `(*Server).EnsureFresh(ctx context.Context, notBefore time.Time) (watcher.ScanID, error)`,
+  `(*Server).Run(ctx context.Context) error`,
+  `(*Server).Tracker() *watcher.Tracker`, `(*Server).Flush() error`,
+  `(*Server).Stats() Stats` where
+  `Stats{ScanID watcher.ScanID; StartedAt time.Time; Duration time.Duration; Files int; Targets int; RootDir string}`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2501,10 +2610,10 @@ func sameStamps(a map[string]watcher.Stamp, b map[string]watcher.Stamp) bool {
 }
 ```
 
-Note: the very first `ScanOnce` sees `s.configs` empty and `configs` non-empty, so
-`rediscover` runs before the first `Update` — targets are known from scan 1 on.
-A repository with no component config files at all would never discover; that is
-acceptable because there is nothing to track.
+Note: the very first `ScanOnce` sees `s.configs` empty and `configs` non-empty,
+so `rediscover` runs before the first `Update` — targets are known from scan 1
+on. A repository with no component config files at all would never discover;
+that is acceptable because there is nothing to track.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -2524,17 +2633,26 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 10: gRPC service and socket lifecycle
 
 **Files:**
+
 - Create: `pkg/watcher/server/service.go`
 - Create: `pkg/watcher/server/socket.go`
 - Test: `pkg/watcher/server/service_test.go`
 
 **Interfaces:**
+
 - Consumes: `Server` (Task 9), generated `watcherv1` package (Task 8).
-- Produces: `server.Listen(address string) (net.Listener, error)`, `(*Server).Serve(ctx context.Context, address string, version string) error`, and the unexported `service` implementing `watcherv1.WatcherServer`.
+- Produces: `server.Listen(address string) (net.Listener, error)`,
+  `(*Server).Serve(ctx context.Context, address string, version string) error`,
+  and the unexported `service` implementing `watcherv1.WatcherServer`.
 
 Design points fixed here:
-- `GetStatus` pins the scan id it hands out, and a `time.AfterFunc(pinTTL, …)` releases it. This keeps `digestAt` resolvable for builds of any length without unbounded growth.
-- A unix address whose socket file exists is probed by dialling it: a refused connection means a stale file (remove it), a successful one means another server owns the repository (error out).
+
+- `GetStatus` pins the scan id it hands out, and a `time.AfterFunc(pinTTL, …)`
+  releases it. This keeps `digestAt` resolvable for builds of any length without
+  unbounded growth.
+- A unix address whose socket file exists is probed by dialling it: a refused
+  connection means a stale file (remove it), a successful one means another
+  server owns the repository (error out).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2685,7 +2803,8 @@ func TestListenRefusesWhenAnotherServerOwnsTheSocket(t *testing.T) {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `go test -tags 'debug test test_small' ./pkg/watcher/server/... -run 'GetStatus|Report|Reset|Info|Listen' -v`
+Run:
+`go test -tags 'debug test test_small' ./pkg/watcher/server/... -run 'GetStatus|Report|Reset|Info|Listen' -v`
 Expected: FAIL — `undefined: Listen`, `s.Serve undefined`.
 
 - [ ] **Step 3: Write `pkg/watcher/server/socket.go`**
@@ -2999,18 +3118,32 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 11: Watcher client
 
 **Files:**
+
 - Create: `pkg/watcher/version.go`
 - Create: `pkg/watcher/client/client.go`
 - Test: `pkg/watcher/client/client_test.go`
 
 **Interfaces:**
+
 - Consumes: generated `watcherv1` (Task 8), `server.Serve` (Task 10) in tests.
 - Produces:
   - `watcher.ProtocolVersion` (`const string = "1"`).
-  - `client.Client`, `client.Dial(args *watcher.Args, rootDir string) (*Client, error)`, `(*Client).Close() error`, `(*Client).Status(ctx context.Context, ids []target.ID, maxAge time.Duration) (Result, error)`, `(*Client).Report(ctx context.Context, scanID int64, results map[target.ID]bool) ([]target.ID, error)`, `(*Client).Info(ctx context.Context) (*watcherv1.InfoResponse, error)`, `(*Client).Rescan(ctx) (int64, error)`, `(*Client).Reset(ctx, ids []target.ID) error`, `(*Client).Shutdown(ctx) error`.
-  - `client.Result` — `struct { ScanID int64; Dirty map[target.ID]bool; DirtyInputs map[target.ID][]string; HasBuild map[target.ID]bool }`.
-  - `client.QueryDirty(ctx context.Context, args *watcher.Args, rootDir string, ids []target.ID) Result` — never fails: on any error it logs and returns a zero `Result` (`Dirty == nil`), which callers must read as **all targets dirty**.
-  - `client.ReportResults(ctx context.Context, args *watcher.Args, rootDir string, scanID int64, results map[target.ID]bool)` — never fails; logs and returns.
+  - `client.Client`,
+    `client.Dial(args *watcher.Args, rootDir string) (*Client, error)`,
+    `(*Client).Close() error`,
+    `(*Client).Status(ctx context.Context, ids []target.ID, maxAge time.Duration) (Result, error)`,
+    `(*Client).Report(ctx context.Context, scanID int64, results map[target.ID]bool) ([]target.ID, error)`,
+    `(*Client).Info(ctx context.Context) (*watcherv1.InfoResponse, error)`,
+    `(*Client).Rescan(ctx) (int64, error)`,
+    `(*Client).Reset(ctx, ids []target.ID) error`,
+    `(*Client).Shutdown(ctx) error`.
+  - `client.Result` —
+    `struct { ScanID int64; Dirty map[target.ID]bool; DirtyInputs map[target.ID][]string; HasBuild map[target.ID]bool }`.
+  - `client.QueryDirty(ctx context.Context, args *watcher.Args, rootDir string, ids []target.ID) Result`
+    — never fails: on any error it logs and returns a zero `Result`
+    (`Dirty == nil`), which callers must read as **all targets dirty**.
+  - `client.ReportResults(ctx context.Context, args *watcher.Args, rootDir string, scanID int64, results map[target.ID]bool)`
+    — never fails; logs and returns.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -3370,15 +3503,20 @@ their runners at `ExecStatusNotRun`, which makes `Status()` non-success and
 we actually wanted to build.
 
 **Files:**
-- Modify: `pkg/dag/status.go:17-19` (status constants), `pkg/dag/status.go:55-80` (`RunnerStatuses.log`)
-- Modify: `pkg/dag/node.go:36-42` (`TargetExecStatus`), `pkg/dag/node.go:88-98` (`Status`)
+
+- Modify: `pkg/dag/status.go:17-19` (status constants),
+  `pkg/dag/status.go:55-80` (`RunnerStatuses.log`)
+- Modify: `pkg/dag/node.go:36-42` (`TargetExecStatus`), `pkg/dag/node.go:88-98`
+  (`Status`)
 - Modify: `pkg/dag/run.go:180-186` (`executeRunners` switch)
 - Modify: `pkg/dag/run-concurrent.go:165-175` (task closure)
 - Test: `pkg/dag/skip_test.go`
 
 **Interfaces:**
+
 - Consumes: nothing new.
-- Produces: `dag.ExecStatusSkipped` (`ExecStatus = 3`), field `TargetExecStatus.Skip bool`.
+- Produces: `dag.ExecStatusSkipped` (`ExecStatus = 3`), field
+  `TargetExecStatus.Skip bool`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -3545,7 +3683,8 @@ In the task closure, add before the `Cancel` check:
 
 - [ ] **Step 7: Run tests to verify they pass**
 
-Run: `go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
+Run:
+`go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
 Expected: PASS — including all pre-existing dag tests.
 
 - [ ] **Step 8: Commit**
@@ -3561,23 +3700,31 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 13: Seed the DAG from the watcher
 
 **Files:**
+
 - Create: `pkg/dag/watcher.go`
-- Modify: `pkg/dag/execution-order.go:55-61` (`opts`), `pkg/dag/execution-order.go:99-158` (`defineExecutionOrder`)
+- Modify: `pkg/dag/execution-order.go:55-61` (`opts`),
+  `pkg/dag/execution-order.go:99-158` (`defineExecutionOrder`)
 - Test: `pkg/dag/watcher_test.go`
 
 **Interfaces:**
-- Consumes: `client.QueryDirty`, `client.Result` (Task 11); `TargetNodeChanges.Propagate`, `graph.recomputeSubgraph`, `graph.inSelection` (existing).
-- Produces: `dag.WatcherSession` — `struct { Args *watcher.Args; RootDir string; ScanID int64 }`, `dag.WithWatcher(sess *WatcherSession) ExecOption`, `(*graph).SolveWatcherChanges(dirty map[target.ID]bool) error`.
 
-Semantics: a `nil` `dirty` map means "nothing known" → every target changed (today's
-behaviour). A target id **missing** from a non-nil map is also treated as changed —
-never skip what the server did not answer for.
+- Consumes: `client.QueryDirty`, `client.Result` (Task 11);
+  `TargetNodeChanges.Propagate`, `graph.recomputeSubgraph`, `graph.inSelection`
+  (existing).
+- Produces: `dag.WatcherSession` —
+  `struct { Args *watcher.Args; RootDir string; ScanID int64 }`,
+  `dag.WithWatcher(sess *WatcherSession) ExecOption`,
+  `(*graph).SolveWatcherChanges(dirty map[target.ID]bool) error`.
+
+Semantics: a `nil` `dirty` map means "nothing known" → every target changed
+(today's behaviour). A target id **missing** from a non-nil map is also treated
+as changed — never skip what the server did not answer for.
 
 - [ ] **Step 1: Write the failing test**
 
 Create `pkg/dag/watcher_test.go`. Reuse the component fixture from
-`pkg/dag/execution-order_test.go`; the graph here has `comp-a::build` depending on
-`comp-a::gen`.
+`pkg/dag/execution-order_test.go`; the graph here has `comp-a::build` depending
+on `comp-a::gen`.
 
 ```go
 //go:build test && (test_small || test_all)
@@ -3820,7 +3967,8 @@ In `pkg/dag/execution-order.go`, add the field to `opts`:
 ```
 
 Replace the change-solving part of `defineExecutionOrder` (currently the block
-computing `resolveInputs`, making paths absolute and calling `SolveInputChanges`):
+computing `resolveInputs`, making paths absolute and calling
+`SolveInputChanges`):
 
 ```go
 	// When we have resolved input ids, we can solve input changes.
@@ -3891,7 +4039,8 @@ func markSkipped(targets TargetNodeMap) {
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
+Run:
+`go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
 Expected: PASS — new watcher tests plus all pre-existing dag tests.
 
 - [ ] **Step 6: Commit**
@@ -3911,13 +4060,17 @@ write their own commands, and they must get change tracking without extra
 wiring.
 
 **Files:**
-- Modify: `pkg/dag/run.go:33-40` (`execOption`), `pkg/dag/run.go:42-69` (`Execute`), `pkg/dag/run.go:334` (options)
+
+- Modify: `pkg/dag/run.go:33-40` (`execOption`), `pkg/dag/run.go:42-69`
+  (`Execute`), `pkg/dag/run.go:334` (options)
 - Modify: `pkg/dag/watcher.go`
 - Test: `pkg/dag/watcher_test.go`
 
 **Interfaces:**
+
 - Consumes: `WatcherSession` (Task 13), `client.ReportResults` (Task 11).
-- Produces: `dag.WithWatcherReport(sess *WatcherSession) ExecuteOption`, `dag.CollectResults(targets TargetNodeMap) map[target.ID]bool`.
+- Produces: `dag.WithWatcherReport(sess *WatcherSession) ExecuteOption`,
+  `dag.CollectResults(targets TargetNodeMap) map[target.ID]bool`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -3954,7 +4107,8 @@ func TestCollectResultsIgnoresSkippedAndUnexecutedTargets(t *testing.T) {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `go test -tags 'debug test test_small' ./pkg/dag/... -run CollectResults -v`
+Run:
+`go test -tags 'debug test test_small' ./pkg/dag/... -run CollectResults -v`
 Expected: FAIL — `undefined: CollectResults`.
 
 - [ ] **Step 3: Append to `pkg/dag/watcher.go`**
@@ -4082,7 +4236,8 @@ option functions only assign fields.
 
 - [ ] **Step 6: Run tests to verify they pass**
 
-Run: `go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
+Run:
+`go test -tags 'debug test test_small test_large test_all' ./pkg/dag/... -v`
 Expected: PASS.
 
 - [ ] **Step 7: Commit**
@@ -4098,14 +4253,21 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 15: Wire the watcher into the CLI framework
 
 **Files:**
+
 - Create: `pkg/watcher/selector.go`
-- Modify: `pkg/cli/cli.go:20-63` (`ICLI`), `pkg/cli/cli.go:96-120` (`cliApp` fields)
+- Modify: `pkg/cli/cli.go:20-63` (`ICLI`), `pkg/cli/cli.go:96-120` (`cliApp`
+  fields)
 - Modify: `pkg/cli/cli-impl.go` (accessors)
 - Modify: `pkg/cli/options.go` (new option, after `WithConfigFilename`)
 
 **Interfaces:**
-- Consumes: `watcher.Args` (Task 1), `component.ConfigFilename` (`pkg/component/component-paths.go:13`).
-- Produces: `watcher.ArgsSelector` (`func(config.IConfig) *watcher.Args`), `cli.WithWatcher(selector watcher.ArgsSelector) Option`, `ICLI.WatcherArgs() *watcher.Args` (nil when unconfigured), `ICLI.ConfigFilename() string`.
+
+- Consumes: `watcher.Args` (Task 1), `component.ConfigFilename`
+  (`pkg/component/component-paths.go:13`).
+- Produces: `watcher.ArgsSelector` (`func(config.IConfig) *watcher.Args`),
+  `cli.WithWatcher(selector watcher.ArgsSelector) Option`,
+  `ICLI.WatcherArgs() *watcher.Args` (nil when unconfigured),
+  `ICLI.ConfigFilename() string`.
 
 - [ ] **Step 1: Write `pkg/watcher/selector.go`**
 
@@ -4184,13 +4346,11 @@ func (c *cliApp) ConfigFilename() string {
 
 - [ ] **Step 4: Verify it compiles**
 
-Run: `go build ./...`
-Expected: no output.
+Run: `go build ./...` Expected: no output.
 
 - [ ] **Step 5: Run the full unit test suite**
 
-Run: `just go-test-unit-tests`
-Expected: PASS.
+Run: `just go-test-unit-tests` Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
@@ -4205,14 +4365,18 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 16: The `quitsh server` command
 
 **Files:**
+
 - Create: `pkg/cli/cmd/server/server.go`
 - Create: `pkg/cli/cmd/server/serve.go`
 - Create: `pkg/cli/cmd/server/status.go`
 - Create: `pkg/cli/cmd/server/control.go`
 
 **Interfaces:**
-- Consumes: `cli.ICLI` (Task 15), `server.New`, `(*Server).Serve` (Tasks 9–10), `client.Dial` (Task 11), `watcher.ProtocolVersion`.
-- Produces: `servercmd.AddCmd(cl cli.ICLI, parent *cobra.Command)` adding `server serve|status|stop|reset`.
+
+- Consumes: `cli.ICLI` (Task 15), `server.New`, `(*Server).Serve` (Tasks 9–10),
+  `client.Dial` (Task 11), `watcher.ProtocolVersion`.
+- Produces: `servercmd.AddCmd(cl cli.ICLI, parent *cobra.Command)` adding
+  `server serve|status|stop|reset`.
 
 - [ ] **Step 1: Write `pkg/cli/cmd/server/server.go`**
 
@@ -4234,7 +4398,8 @@ Run and control the change-tracking watcher.
 
 The watcher rescans the repository periodically, remembers the input state each
 target was last built from, and answers which targets are out of date. Run
-'quitsh <cmd> --skip-unchanged' to make a build use it.
+targets, and answers which targets are out of date. Builds use it automatically;
+pass '--no-skip' to run everything anyway.
 `
 
 // AddCmd adds the 'server' command to 'parent'.
@@ -4540,8 +4705,7 @@ func addControlCmds(cl cli.ICLI, parent *cobra.Command) {
 
 - [ ] **Step 5: Verify it compiles**
 
-Run: `go build ./...`
-Expected: no output.
+Run: `go build ./...` Expected: no output.
 
 - [ ] **Step 6: Commit**
 
@@ -4553,52 +4717,57 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 
 ---
 
-### Task 17: `--skip-unchanged` on the exec commands
+### Task 17: `--no-skip` on the exec commands
+
+Change tracking is **on by default**. Without a running `quitsh server` the
+client cannot reach anything, so every target is treated as changed and
+behaviour is exactly as it is today. `--no-skip` forces that same "run
+everything" behaviour even when a server _is_ running.
 
 **Files:**
+
 - Modify: `pkg/cli/general/general.go` (flag helper)
 - Modify: `pkg/cli/cmd/exec-target/exec.go`
 - Modify: `pkg/cli/cmd/exec-stage/exec.go`
 - Modify: `tools/cli/pkg/config/config.go`, `tools/cli/cmd/cli/main.go`
 
 **Interfaces:**
-- Consumes: `dag.WatcherSession`, `dag.WithWatcher`, `dag.WithWatcherReport` (Tasks 13–14); `ICLI.WatcherArgs` (Task 15).
-- Produces: `general.AddFlagWatcher(cmd *cobra.Command, skipUnchanged *bool)`.
 
-The flag is resolved **late** (inside `RunE`), because the config is unmarshalled
-after the commands are built — binding a pointer into the config at flag-registration
-time would bind the wrong struct.
+- Consumes: `dag.WatcherSession`, `dag.WithWatcher`, `dag.WithWatcherReport`
+  (Tasks 13–14); `ICLI.WatcherArgs` (Task 15).
+- Produces: `general.AddFlagWatcher(cmd *cobra.Command, noSkip *bool)`.
+
+The flag is resolved **late** (inside `RunE`), because the config is
+unmarshalled after the commands are built — binding a pointer into the config at
+flag-registration time would bind the wrong struct.
 
 - [ ] **Step 1: Add the flag helper in `pkg/cli/general/general.go`**
 
 ```go
-// AddFlagWatcher adds the `--skip-unchanged` flag which enables the
-// change-tracking watcher for this invocation.
-func AddFlagWatcher(cmd *cobra.Command, skipUnchanged *bool) {
-	cmd.Flags().BoolVar(skipUnchanged, "skip-unchanged", false,
-		"Skip targets whose inputs did not change since their last successful "+
-			"build (needs a running 'quitsh server').")
+// AddFlagWatcher adds the `--no-skip` flag which turns the change-tracking
+// watcher off for this invocation. Change tracking is on by default; without a
+// running `quitsh server` it has no effect anyway.
+func AddFlagWatcher(cmd *cobra.Command, noSkip *bool) {
+	cmd.Flags().BoolVar(noSkip, "no-skip", false,
+		"Run every selected target, even ones which did not change since "+
+			"their last successful build (ignores a running 'quitsh server').")
 }
 ```
 
 - [ ] **Step 2: Use it in `pkg/cli/cmd/exec-target/exec.go`**
 
-Add `skipUnchanged bool` to `execTargetArgs`, register the flag in `AddCmd`:
+Add `noSkip bool` to `execTargetArgs`, register the flag in `AddCmd`:
 
 ```go
-	general.AddFlagWatcher(execCmd, &args.skipUnchanged)
+	general.AddFlagWatcher(execCmd, &args.noSkip)
 ```
 
 and replace the body of `runExec` from `dag.DefineExecutionOrder` onwards:
 
 ```go
 	sess := dag.WatcherSession{Args: cli.WatcherArgs(), RootDir: rootDir}
-	if args.skipUnchanged {
-		if sess.Args == nil {
-			return errors.New(
-				"'--skip-unchanged' needs this CLI to be built with 'cli.WithWatcher(...)'")
-		}
-		sess.Args.Enabled = true
+	if args.noSkip && sess.Args != nil {
+		sess.Args.Enabled = false
 	}
 
 	targets, prios, err := dag.DefineExecutionOrder(
@@ -4629,13 +4798,11 @@ and replace the body of `runExec` from `dag.DefineExecutionOrder` onwards:
 	)
 ```
 
-Add the import `"github.com/sdsc-ordes/quitsh/pkg/errors"`.
-
 - [ ] **Step 3: Use it in `pkg/cli/cmd/exec-stage/exec.go`**
 
 `ExecuteStage` needs the flag value, so extend its signature and both call sites
 (`AddCmdGeneral` and `AddCmdAlias` each hold their own `compArgs`; add a
-`skipUnchanged bool` next to it and register `general.AddFlagWatcher(cmd, &skipUnchanged)`):
+`noSkip bool` next to it and register `general.AddFlagWatcher(cmd, &noSkip)`):
 
 ```go
 func ExecuteStage(
@@ -4643,7 +4810,7 @@ func ExecuteStage(
 	compArgs *general.ComponentArgs,
 	stage stage.Stage,
 	execArgs *dag.ExecArgs,
-	skipUnchanged bool,
+	noSkip bool,
 ) error {
 	comps, all, rootDir, err := cl.FindComponents(compArgs)
 	if err != nil {
@@ -4651,12 +4818,8 @@ func ExecuteStage(
 	}
 
 	sess := dag.WatcherSession{Args: cl.WatcherArgs(), RootDir: rootDir}
-	if skipUnchanged {
-		if sess.Args == nil {
-			return errors.New(
-				"'--skip-unchanged' needs this CLI to be built with 'cli.WithWatcher(...)'")
-		}
-		sess.Args.Enabled = true
+	if noSkip && sess.Args != nil {
+		sess.Args.Enabled = false
 	}
 
 	targets, prios, err := dag.DefineExecutionOrder(
@@ -4692,8 +4855,8 @@ func ExecuteStage(
 ```
 
 Note the behaviour change: an empty target set is no longer an error, because
-"everything is up to date" is a legitimate outcome. Add the `log` import; the
-`errors` import stays, it is now used by the `--skip-unchanged` guard above.
+"everything is up to date" is a legitimate outcome. Add the `log` import and
+drop the `errors` import if it becomes unused.
 
 - [ ] **Step 4: Wire the repository's own CLI**
 
@@ -4722,10 +4885,12 @@ and register the command next to the other `AddCmd` calls:
 	servercmd.AddCmd(cli, cli.RootCmd())
 ```
 
-with the imports `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"` and
-`"github.com/sdsc-ordes/quitsh/pkg/watcher"`.
+with the imports `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"`
+and `"github.com/sdsc-ordes/quitsh/pkg/watcher"`.
 
-While you are there, remove the duplicated `exectarget.AddCmd(cli, cli.RootCmd(), &conf.Commands.ExecArgs)` line — it is registered twice.
+While you are there, remove the duplicated
+`exectarget.AddCmd(cli, cli.RootCmd(), &conf.Commands.ExecArgs)` line — it is
+registered twice.
 
 - [ ] **Step 5: Verify it builds and the suite passes**
 
@@ -4762,7 +4927,7 @@ Expected: a list of `● quitsh::…` targets, all dirty (nothing built yet).
 ```bash
 git add pkg/cli tools/cli
 git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.github.com' \
-  commit -m "feat(cli): add --skip-unchanged and wire the watcher into the quitsh CLI"
+  commit -m "feat(cli): track changes by default and add --no-skip to opt out"
 ```
 
 ---
@@ -4771,16 +4936,20 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 
 The existing integration tests drive the **built CLI binary** as a subprocess
 against the `test/repo` fixture (see `test/integration_test.go:20` — `setup`
-builds an `exec.CmdContextBuilder` around `$QUITSH_BIN_DIR/quitsh-integration-test`
-with `--root-dir repo`). This test follows that style, so it exercises the real
-command wiring rather than the Go API.
+builds an `exec.CmdContextBuilder` around
+`$QUITSH_BIN_DIR/quitsh-integration-test` with `--root-dir repo`). This test
+follows that style, so it exercises the real command wiring rather than the Go
+API.
 
 **Files:**
+
 - Modify: `test/cmd/quitsh-integration-test/main.go`
 - Create: `test/watcher_test.go`
 
 **Interfaces:**
-- Consumes: `servercmd.AddCmd`, `cli.WithWatcher` (Tasks 15–16), `--skip-unchanged` (Task 17).
+
+- Consumes: `servercmd.AddCmd`, `cli.WithWatcher` (Tasks 15–16), `--no-skip`
+  (Task 17).
 - Produces: nothing.
 
 - [ ] **Step 1: Enable the watcher in the integration CLI**
@@ -4807,9 +4976,10 @@ and register the command next to the other `AddCmd` calls:
 ```
 
 Imports to add: `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"`,
-`"github.com/sdsc-ordes/quitsh/pkg/watcher"`, and `"github.com/sdsc-ordes/quitsh/pkg/common"`
-(if not already imported). Match the existing cast style in that file — it may
-already use `common.Cast` or a direct type assertion.
+`"github.com/sdsc-ordes/quitsh/pkg/watcher"`, and
+`"github.com/sdsc-ordes/quitsh/pkg/common"` (if not already imported). Match the
+existing cast style in that file — it may already use `common.Cast` or a direct
+type assertion.
 
 - [ ] **Step 2: Write the test**
 
@@ -4885,7 +5055,7 @@ func TestWatcherSkipsUnchangedTarget(t *testing.T) {
 	run := func() string {
 		args := append([]string{}, configValues...)
 		args = append(args,
-			"exec-target", "component-a::build", "--skip-unchanged")
+			"exec-target", "component-a::build")
 
 		stdout, err := cli.Get(args...)
 		require.NoError(t, err)
@@ -4909,7 +5079,7 @@ func TestWatcherRebuildsAfterEdit(t *testing.T) {
 	run := func() string {
 		args := append([]string{}, configValues...)
 		args = append(args,
-			"exec-target", "component-a::build", "--skip-unchanged")
+			"exec-target", "component-a::build")
 
 		stdout, err := cli.Get(args...)
 		require.NoError(t, err)
@@ -4944,29 +5114,51 @@ func TestWatcherStatusListsDirtyTargets(t *testing.T) {
 		"targets of the fixture repository must be listed as dirty")
 }
 
-func TestSkipUnchangedWithoutServerRunsEverything(t *testing.T) {
+func TestWithoutServerEverythingRuns(t *testing.T) {
 	cli := setup(t).Build()
 
 	stdout, err := cli.Get(
 		"--config-value", "watcher.address: unix://"+path.Join(t.TempDir(), "absent.sock"),
 		"--config-value", "watcher.timeout: 500ms",
-		"exec-target", "component-a::build", "--skip-unchanged",
+		"exec-target", "component-a::build",
 	)
 
 	require.NoError(t, err, "an absent watcher must never break a build")
 	assert.NotContains(t, stdout, "up to date")
 }
+
+func TestNoSkipRunsEvenWhenUpToDate(t *testing.T) {
+	configValues := startWatcher(t)
+	cli := setup(t).Build()
+
+	run := func(extra ...string) string {
+		args := append([]string{}, configValues...)
+		args = append(args, "exec-target", "component-a::build")
+		args = append(args, extra...)
+
+		stdout, err := cli.Get(args...)
+		require.NoError(t, err)
+
+		return stdout
+	}
+
+	run()
+	require.Contains(t, run(), "up to date")
+
+	assert.NotContains(t, run("--no-skip"), "up to date",
+		"'--no-skip' must run the target even though it is up to date")
+}
 ```
 
 The `setup` helper already passes `--root-dir repo`; keep the ordering of
-`--config-value` flags before the sub-command, as the other tests in that file do.
-If `exec.CmdContextBuilder` cannot express a background process, keep using
+`--config-value` flags before the sub-command, as the other tests in that file
+do. If `exec.CmdContextBuilder` cannot express a background process, keep using
 `os/exec` directly as shown — the assertion helpers stay the same.
 
 - [ ] **Step 3: Run the integration test**
 
-Run: `just go-test-integration`
-Expected: PASS, including the four new watcher tests.
+Run: `just go-test-integration` Expected: PASS, including the four new watcher
+tests.
 
 - [ ] **Step 4: Commit**
 
@@ -4981,11 +5173,13 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ### Task 19: Documentation and final verification
 
 **Files:**
+
 - Modify: `.gitignore`
 - Modify: `README.md` (new section after "Execution of Targets")
 - Modify: `docs/development-guide.md` (mention `just generate-proto`)
 
 **Interfaces:**
+
 - Consumes: everything.
 - Produces: nothing.
 
@@ -5013,10 +5207,13 @@ was last built from, so repeated builds only run what actually changed.
 quitsh server serve
 
 # Terminal 2: build only what changed.
-quitsh build --skip-unchanged
+quitsh build
 
 # What does it think is out of date, and why?
 quitsh server status --dirty-only
+
+# Run everything anyway, ignoring the watcher.
+quitsh build --no-skip
 
 # Forget what it learned about a target.
 quitsh server reset mycomp::build
@@ -5032,7 +5229,7 @@ How it works:
 - After a run, `quitsh` reports which targets succeeded, and the server records
   the input state **as of the scan the decision was made on** — so a file you
   edit while the build runs correctly keeps the target out of date.
-- The server answers only about a target's *own* inputs. Propagation to
+- The server answers only about a target's _own_ inputs. Propagation to
   dependent targets happens in the DAG, exactly as it does for
   `--changed-paths`-style CI runs.
 - It is a pure accelerator: if it is not running, is unreachable, or speaks a
@@ -5053,16 +5250,16 @@ servercmd.AddCmd(cli, cli.RootCmd())
 
 with `Watcher watcher.Args` in your config struct. Settings:
 
-| Key | Default | Meaning |
-|---|---|---|
-| `enabled` | `false` | Turned on per invocation by `--skip-unchanged` |
-| `address` | per-repo unix socket | gRPC target, `unix://…` or `tcp://…` |
-| `stateFile` | `<root>/.quitsh/watcher-state.json` | Where successful builds are remembered |
-| `scanInterval` | `2s` | Background rescan period |
-| `maxAge` | `0s` | How stale an answer may be; `0` forces a fresh scan |
-| `hashMode` | `mtime-size` | Or `checksum` |
-| `excludes` | `.git`, `.output`, `result`, `node_modules`, … | Regexes on repo-relative paths |
-| `timeout` | `2s` | Client dial and call budget |
+| Key            | Default                                        | Meaning                                             |
+| -------------- | ---------------------------------------------- | --------------------------------------------------- |
+| `enabled`      | `true`                                         | Change tracking; `--no-skip` turns it off per run   |
+| `address`      | per-repo unix socket                           | gRPC target, `unix://…` or `tcp://…`                |
+| `stateFile`    | `<root>/.quitsh/watcher-state.json`            | Where successful builds are remembered              |
+| `scanInterval` | `2s`                                           | Background rescan period                            |
+| `maxAge`       | `0s`                                           | How stale an answer may be; `0` forces a fresh scan |
+| `hashMode`     | `mtime-size`                                   | Or `checksum`                                       |
+| `excludes`     | `.git`, `.output`, `result`, `node_modules`, … | Regexes on repo-relative paths                      |
+| `timeout`      | `2s`                                           | Client dial and call budget                         |
 ````
 
 - [ ] **Step 3: Document the codegen step in `docs/development-guide.md`**
@@ -5079,28 +5276,26 @@ works without a protobuf toolchain. After editing `watcher.proto`, run
 
 - [ ] **Step 4: Format everything**
 
-Run: `just format`
-Expected: files reformatted in place, no errors.
+Run: `just format` Expected: files reformatted in place, no errors.
 
 - [ ] **Step 5: Lint**
 
-Run: `just lint`
-Expected: PASS. Fix any `mnd`, `errcheck` or `gocognit` findings by naming
-constants, handling errors with `log.WarnE`, or splitting functions — do not add
-blanket `//nolint` directives.
+Run: `just lint` Expected: PASS. Fix any `mnd`, `errcheck` or `gocognit`
+findings by naming constants, handling errors with `log.WarnE`, or splitting
+functions — do not add blanket `//nolint` directives.
 
 - [ ] **Step 6: Full test run**
 
-Run: `just test`
-Expected: PASS — `test-small`, `test-large` and `test-integration` targets.
+Run: `just test` Expected: PASS — `test-small`, `test-large` and
+`test-integration` targets.
 
 - [ ] **Step 7: Verify the real workflow end to end**
 
 ```bash
 just go-cli server serve &
 sleep 3
-just go-cli exec-target quitsh::lint --skip-unchanged   # runs
-just go-cli exec-target quitsh::lint --skip-unchanged   # skips
+just go-cli exec-target quitsh::lint             # runs
+just go-cli exec-target quitsh::lint             # skips
 just go-cli server status --dirty-only
 just go-cli server stop
 ```
@@ -5121,11 +5316,59 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 ## Notes for the implementer
 
 - **Never let the watcher cause a skip it is not sure about.** Every unknown —
-  no server, no answer for a target, an unresolvable scan id, an unreadable
-  file — must resolve to "dirty". Tests for each of these exist in Tasks 11, 13
-  and 18; keep them passing.
+  no server, no answer for a target, an unresolvable scan id, an unreadable file
+  — must resolve to "dirty". Tests for each of these exist in Tasks 11, 13 and
+  18; keep them passing.
 - **The server never learns about target dependencies.** If you find yourself
   wanting `Forward` edges inside `pkg/watcher/server`, the design has drifted:
   propagation belongs to `SolveWatcherChanges`.
 - `WithInputChanges` and `SolveInputChanges` stay untouched. They are the CI
   path and remain the fallback until someone decides to remove them.
+
+---
+
+## Implementation Notes
+
+What the implementation did differently from the plan above, and why. The plan
+task bodies are left as written; this section is the record of the deltas.
+
+**Codegen uses `buf`, not `protoc`** (Task 8). `nixpkgs` was unreachable in the
+implementation environment, so no `protoc` binary was available. `buf` compiles
+protobuf in pure Go and the code generator plugins run through `go run`, so
+`just generate-proto` now needs nothing beyond Go itself. The Nix dev-shell step
+of Task 8 was therefore dropped rather than adding `pkgs.protobuf`.
+
+**`Args.Enabled` became `Args.Disabled`** (Tasks 1, 17). Change tracking is on
+by default, but a zero-valued `bool` is `false`. Embedders whose config never
+goes through `defaults.Set` — the integration test CLI is one — would have
+silently had the feature off. Negating the field makes the zero value mean
+"enabled". For the same reason `HashMode`, `ScanInterval` and `Timeout` gained
+`Resolve…()` accessors, so a zero-valued `Args` is fully usable.
+
+**Two bugs were found by the integration test** (Task 18):
+
+- `--config-val` could not set any `time.Duration` field:
+  `pkg/config/config-key-values.go` had no `StringToTimeDurationHookFunc` in its
+  mapstructure hook chain, so `watcher.timeout: 2s` failed with
+  `cannot parse as int`. Fixed for all duration settings, not just the
+  watcher's.
+- An up-to-date repository made `DefineExecutionOrder` fail with
+  `graph selection must contain elements if not nil`, because
+  `recomputeSubgraph` rejects an empty selection. `SolveWatcherChanges` now
+  selects nothing explicitly instead, which is the legitimate "nothing to do"
+  outcome. The `SolveInputChanges` path keeps its old behaviour.
+
+**The root flag is `--config-val` / `-K`**, not `--config-value` as the plan's
+test code assumed.
+
+**`addRunnerTasks` was refactored** (Task 12): adding the skip branch pushed it
+past the `gocognit` threshold, so the three pre-run conditions moved into a
+`skipRunner` helper.
+
+**Verification status.** `golangci-lint` over `./pkg/...` reports 24 issues, all
+`goconst` in pre-existing test files — byte-identical to the count at the base
+commit, so the new code adds none. All unit tests and all integration tests pass
+except `TestProcessCompose`, `TestProcessComposeServicesFlake` and
+`TestCLIProcessCompose`, which fail identically at the base commit because they
+need `process-compose` and a working `nix eval`, neither available in the
+implementation environment.

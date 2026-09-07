@@ -18,6 +18,10 @@ const ExecStatusNotRun = 0
 const ExecStatusFailed = 1
 const ExecStatusSuccess = 2
 
+// ExecStatusSkipped marks a target which was up to date and therefore
+// not executed. For propagation it counts as a success.
+const ExecStatusSkipped = 3
+
 type (
 	ExecStatus int
 
@@ -54,6 +58,8 @@ func (s RunnerStatuses) log() {
 	const failedS = "❌"
 	const successS = "🌻"
 	const notRun = "🚫"
+	const skipped = "⏭️"
+
 	var statusS string
 
 	slices.SortFunc(s, func(a, b *RunnerStatus) int {
@@ -68,6 +74,8 @@ func (s RunnerStatuses) log() {
 			statusS = notRun
 		case ExecStatusFailed:
 			statusS = failedS
+		case ExecStatusSkipped:
+			statusS = skipped
 		}
 
 		fmt.Fprintf(

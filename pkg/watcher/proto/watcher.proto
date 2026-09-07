@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package quitsh.watcher.v1;
+
+option go_package = "github.com/sdsc-ordes/quitsh/pkg/watcher/proto;watcherv1";
+
+// Watcher answers whether a target's own inputs changed since the target was
+// last built successfully. It knows nothing about target dependencies:
+// dependency propagation happens client-side in `pkg/dag`.
+service Watcher {
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  rpc ReportResult(ReportResultRequest) returns (ReportResultResponse);
+  rpc Rescan(RescanRequest) returns (RescanResponse);
+  rpc Reset(ResetRequest) returns (ResetResponse);
+  rpc Info(InfoRequest) returns (InfoResponse);
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_SUCCESS = 1;
+  STATUS_FAILED = 2;
+}
+
+message LastRun {
+  Status status = 1;
+  int64 scan_id = 2;
+  int64 at_unix_ms = 3;
+}
+
+message TargetStatus {
+  string target_id = 1;
+  // Own inputs only. No dependency propagation.
+  bool dirty = 2;
+  bool has_successful_build = 3;
+  repeated string dirty_inputs = 4;
+  LastRun last_run = 5;
+}
+
+message GetStatusRequest {
+  // Empty means all known targets.
+  repeated string target_ids = 1;
+  // 0 means the answer must come from a scan started after this request.
+  int64 max_age_ms = 2;
+}
+
+message GetStatusResponse {
+  int64 scan_id = 1;
+  int64 scanned_at_unix_ms = 2;
+  repeated TargetStatus statuses = 3;
+}
+
+message TargetResult {
+  string target_id = 1;
+  Status status = 2;
+}
+
+message ReportResultRequest {
+  // The scan the caller based its decision on.
+  int64 scan_id = 1;
+  repeated TargetResult results = 2;
+}
+
+message ReportResultResponse {
+  // Targets whose scan id is no longer resolvable; they stay dirty.
+  repeated string not_recorded = 1;
+}
+
+message RescanRequest {}
+message RescanResponse {
+  int64 scan_id = 1;
+}
+
+message ResetRequest {
+  // Empty means all targets.
+  repeated string target_ids = 1;
+}
+message ResetResponse {}
+
+message InfoRequest {}
+message InfoResponse {
+  string version = 1;
+  string root_dir = 2;
+  int64 last_scan_id = 3;
+  int64 last_scan_at_unix_ms = 4;
+  int64 last_scan_duration_ms = 5;
+  int64 target_count = 6;
+  int64 file_count = 7;
+}
+
+message ShutdownRequest {}
+message ShutdownResponse {}

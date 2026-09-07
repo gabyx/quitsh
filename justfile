@@ -37,6 +37,14 @@ lint *args:
 format *args:
     nix run --accept-flake-config "{{flake_dir}}#treefmt" -- "$@"
 
+# Generate the Go code for the watcher gRPC service.
+# `buf` compiles the schema without `protoc`, and the code generator plugins
+# run through `go run`, so no protobuf toolchain needs to be installed.
+# The generated code is committed, so this only needs running after editing
+# `pkg/watcher/proto/watcher.proto`.
+generate-proto:
+    go run github.com/bufbuild/buf/cmd/buf@v1.47.2 generate pkg/watcher/proto
+
 # Build the `cli` tool with Nix.
 package-nix:
     nix build -L "{{flake_dir}}#cli" -o "{{out_dir}}/package/cli"

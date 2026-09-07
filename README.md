@@ -374,6 +374,72 @@ implementing the interface [`Runner`](./pkg/runner/runner.go) inside
 >
 > **You can execute targets in parallel with `--parallel`**.
 
+## Change Tracking (`quitsh server`)
+
+`quitsh server` runs a local watcher which remembers the input state each target
+was last built from, so repeated builds only run what actually changed.
+
+```shell
+# Terminal 1: run the watcher for this repository.
+quitsh server serve
+
+# Terminal 2: build only what changed.
+quitsh build
+
+# What does it think is out of date, and why?
+quitsh server status --dirty-only
+
+# Run everything anyway, ignoring the watcher.
+quitsh build --no-skip
+
+# Forget what it learned about a target.
+quitsh server reset mycomp::build
+```
+
+How it works:
+
+- The server rescans the repository every `scanInterval` and computes a digest
+  per [input change set](#targets-and-steps). Files are stamped by `mtime+size`
+  by default; set `hashMode: checksum` to hash content instead.
+- A target is **out of date** when it has no recorded successful build, or when
+  any of its input sets differs from the state recorded at that build.
+- After a run, `quitsh` reports which targets succeeded, and the server records
+  the input state **as of the scan the skip decision was made on** — so a file
+  you edit while a build is running correctly keeps the target out of date.
+- The server answers only about a target's _own_ inputs. Propagation to
+  dependent targets happens in the DAG, the same way it does for
+  changed-paths-based CI runs.
+- It is a pure accelerator: if it is not running, is unreachable, or speaks a
+  different protocol version, `quitsh` builds everything, as it always did.
+- Targets which are up to date are reported as `⏭️` in the run summary.
+
+Enable it in your CLI:
+
+```go
+cli.New(
+	// ...
+	cli.WithWatcher(func(c config.IConfig) *watcher.Args {
+		return &common.Cast[*cliconfig.Config](c).Watcher
+	}),
+)
+
+servercmd.AddCmd(cli, cli.RootCmd())
+```
+
+with `Watcher watcher.Args` in your config struct. The zero value is usable, so
+every setting below is optional:
+
+| Key            | Default                                     | Meaning                                                |
+| -------------- | ------------------------------------------- | ------------------------------------------------------ |
+| `disabled`     | `false`                                     | Turns change tracking off; `--no-skip` does it per run |
+| `address`      | per-repository unix socket                  | gRPC target, `unix://…` or `tcp://…`                   |
+| `stateFile`    | `<root>/.quitsh/watcher-state.json`         | Where successful builds are remembered                 |
+| `scanInterval` | `2s`                                        | Background rescan period                               |
+| `maxAge`       | `0s`                                        | How stale an answer may be; `0` forces a fresh scan    |
+| `hashMode`     | `mtime-size`                                | Or `checksum`                                          |
+| `excludes`     | `.git`, `.output`, `result`, `node_modules` | Regexes on repository-relative paths                   |
+| `timeout`      | `2s`                                        | Client dial and call budget                            |
+
 ## Runner Configuration
 
 Runners can load independent YAML config under `config` to make them

@@ -13,6 +13,7 @@ import (
 	"github.com/sdsc-ordes/quitsh/pkg/config"
 	"github.com/sdsc-ordes/quitsh/pkg/runner/factory"
 	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 
 	"github.com/spf13/cobra"
 )
@@ -44,6 +45,13 @@ type ICLI interface {
 
 	// toolchainDispatcher gets the toolchain dispatch function.
 	ToolchainDispatcher() toolchain.IDispatcher
+
+	// WatcherArgs returns the change-tracking watcher settings, or `nil` when
+	// the CLI was not built with [WithWatcher].
+	WatcherArgs() *watcher.Args
+
+	// ConfigFilename returns the components config file name.
+	ConfigFilename() string
 
 	// FindComponents returns components `comps` found by arguments `args` and
 	// and all searched components `all` (needed to construct the DAG).
@@ -116,6 +124,7 @@ type cliApp struct {
 
 	factory             factory.IFactory
 	toolchainDispatcher toolchain.IDispatcher
+	watcherArgsSelector watcher.ArgsSelector
 
 	shutdown func() error
 }

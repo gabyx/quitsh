@@ -35,7 +35,8 @@ type (
 	ExecuteOption func(*execOption) error
 
 	execOption struct {
-		Tags []tags.Tag
+		Tags    []tags.Tag
+		Watcher *WatcherSession
 	}
 )
 
@@ -51,15 +52,21 @@ func Execute(
 	parallel bool,
 	opts ...ExecuteOption,
 ) error {
+	var o execOption
+	if err := o.Apply(opts...); err != nil {
+		return err
+	}
+
+	var err error
 	if parallel {
-		return executeConcurrent(
+		err = executeConcurrent(
 			targets,
 			runnerFactory,
 			dispatcher,
 			config,
 			rootDir, opts...)
 	} else {
-		return executeNormal(
+		err = executeNormal(
 			prios,
 			runnerFactory,
 			dispatcher,
@@ -67,6 +74,12 @@ func Execute(
 			rootDir, opts...,
 		)
 	}
+
+	if o.Watcher != nil {
+		reportToWatcher(o.Watcher, targets)
+	}
+
+	return err
 }
 
 // executeNormal executes the DAG non-concurrent.
@@ -179,6 +192,14 @@ func executeRunners(
 		}
 
 		switch {
+		case rD.node.Execution.Skip:
+			rD.status.Status = ExecStatusSkipped
+			log.Debugf(
+				"Target '%v' is up to date. Skip runner '%v'.",
+				rD.node.Target.ID,
+				rD.inst.RunnerID,
+			)
+
 		case rD.node.Execution.Cancel:
 			log.Debugf(
 				"Target '%v' is cancelled by prev. target. Skip runner '%v'",
@@ -328,6 +349,16 @@ func (o *execOption) Apply(opts ...ExecuteOption) error {
 	}
 
 	return nil
+}
+
+// WithWatcherReport reports the outcome of this run to the watcher server,
+// against the scan id the execution order was decided on.
+func WithWatcherReport(sess *WatcherSession) ExecuteOption {
+	return func(o *execOption) error {
+		o.Watcher = sess
+
+		return nil
+	}
 }
 
 // WithTags adds executable tags [tags.Tag] to the executable options.

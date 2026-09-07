@@ -164,22 +164,7 @@ func addRunnerTasks(
 			// Always on finish propagate exec status.
 			defer func() { node.PropagateExecStatus() }()
 
-			if node.Execution.Cancel {
-				log.Debugf(
-					"Runner '%v' for target '%v' is cancelled by dependency.",
-					runnerIdx,
-					node.Target.ID,
-				)
-
-				return
-			} else if node.StatusAnyFailed() {
-				log.Debugf(
-					"Target '%v' is failed already. Skip runner '%v', step: '%v'.",
-					node.Target.ID,
-					runner.RunnerID,
-					stepIdx,
-				)
-
+			if skipRunner(node, status, runner.RunnerID, stepIdx) {
 				return
 			}
 
@@ -236,4 +221,38 @@ func addRunnerTasks(
 	}
 
 	return nil
+}
+
+// skipRunner reports whether a runner must not be executed, and records why.
+// A target which is up to date is marked [ExecStatusSkipped]; one cancelled by
+// a failed dependency, or already failed itself, stays [ExecStatusNotRun].
+func skipRunner(
+	node *TargetNode,
+	status *RunnerStatus,
+	runnerID runner.RegisterID,
+	stepIdx int,
+) bool {
+	switch {
+	case node.Execution.Skip:
+		status.Status = ExecStatusSkipped
+		log.Debugf("Target '%v' is up to date. Skip runner '%v'.",
+			node.Target.ID, runnerID)
+
+		return true
+
+	case node.Execution.Cancel:
+		log.Debugf("Runner '%v' for target '%v' is cancelled by dependency.",
+			runnerID, node.Target.ID)
+
+		return true
+
+	case node.StatusAnyFailed():
+		log.Debugf("Target '%v' is failed already. Skip runner '%v', step: '%v'.",
+			node.Target.ID, runnerID, stepIdx)
+
+		return true
+
+	default:
+		return false
+	}
 }

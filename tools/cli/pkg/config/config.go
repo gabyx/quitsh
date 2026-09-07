@@ -9,6 +9,7 @@ import (
 	"github.com/sdsc-ordes/quitsh/pkg/dag"
 	"github.com/sdsc-ordes/quitsh/pkg/log"
 	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/sdsc-ordes/quitsh/pkg/watcher"
 
 	cconfig "quitsh-cli/pkg/runner/config"
 )
@@ -29,6 +30,9 @@ type CommandArgs struct {
 type Config struct {
 	// All command arguments of our `quitsh` instance.
 	Commands CommandArgs `yaml:"commands"`
+
+	// The change-tracking watcher settings (`quitsh server`).
+	Watcher watcher.Args `yaml:"watcher"`
 
 	// The Nix settings.
 	Nix cconfig.NixSettings `yaml:"nix"`

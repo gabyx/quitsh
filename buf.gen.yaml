@@ -1,0 +1,13 @@
+# Code generation for the watcher gRPC service (see `just generate-proto`).
+# The plugins run through `go run` so that no protobuf toolchain has to be
+# installed; `buf` itself compiles the schema without `protoc`.
+version: v1
+plugins:
+  - name: go
+    out: .
+    opt: module=github.com/sdsc-ordes/quitsh
+    path: ["go", "run", "google.golang.org/protobuf/cmd/protoc-gen-go"]
+  - name: go-grpc
+    out: .
+    opt: module=github.com/sdsc-ordes/quitsh
+    path: ["go", "run", "google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1"]

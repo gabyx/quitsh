@@ -25,3 +25,6 @@
 .yamllint.yaml
 .typos.toml
 .golangci.yaml
+
+# Local state of the `quitsh server` change-tracking watcher.
+.quitsh

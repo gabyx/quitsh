@@ -30,7 +30,10 @@ func ApplyKeyValues(keyValues []string, config any) error {
 		// Set our special hook to make all types
 		// which implement UnmarshalMapstructDecodeHook
 		// also deserializable.
+		// The duration hook lets settings such as `a.b.timeout: 2s` work,
+		// which `WeaklyTypedInput` alone would parse as an integer.
 		dO.DecodeHook = mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
 			UnmarshalMapstructDecodeHook)
 
 		dO.Result = config
