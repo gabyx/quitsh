@@ -13,7 +13,7 @@ import (
 	listcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/list"
 	processcompose "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/process-compose"
 	rootcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/root"
-	servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"
+	servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/watcher"
 	"github.com/sdsc-ordes/quitsh/pkg/common"
 	"github.com/sdsc-ordes/quitsh/pkg/component/query"
 	"github.com/sdsc-ordes/quitsh/pkg/component/stage"

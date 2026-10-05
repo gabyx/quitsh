@@ -1,5 +1,8 @@
 commands:
   root:
     logLevel: info
+    globalOutput: true
+watcher:
+  address: localhost:7777
 test:
   showTestLog: true

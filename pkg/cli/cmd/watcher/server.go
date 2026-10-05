@@ -21,8 +21,8 @@ use it automatically; pass '--no-skip' to run everything anyway.
 // AddCmd adds the 'server' command to 'parent'.
 func AddCmd(cl cli.ICLI, parent *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "server",
-		Short: "Run and control the quitsh server (change-tracking etc...)",
+		Use:   "watcher",
+		Short: "Run and control the quitsh watcher (change-tracking etc...)",
 		Long:  longDesc,
 		RunE: func(cmd *cobra.Command, _args []string) error {
 			_ = cmd.Help()

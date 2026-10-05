@@ -31,7 +31,7 @@ type Config struct {
 	// All command arguments of our `quitsh` instance.
 	Commands CommandArgs `yaml:"commands"`
 
-	// The change-tracking watcher settings (`quitsh server`).
+	// The change-tracking watcher settings (`quitsh watcher`).
 	Watcher watcher.Args `yaml:"watcher"`
 
 	// The Nix settings.

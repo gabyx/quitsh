@@ -216,7 +216,7 @@ installed; a `justfile` recipe regenerates it.
   one mutex plus a join point for the in-flight scan.
 - **`pkg/watcher/client`** — dials the socket, `GetStatus`/`ReportResult`. Never
   fails hard: an unreachable server yields "all dirty".
-- **`pkg/cli/cmd/server`** — `quitsh server serve | status | stop | reset`.
+- **`pkg/cli/cmd/watcher`** — `quitsh server serve | status | stop | reset`.
 - **`pkg/dag`** — seeding from watcher status, `ExecStatusSkipped`, reporting.
 
 The server needs each target's resolved input sets (including the default

@@ -71,7 +71,7 @@ read it before starting.
 | `pkg/watcher/client/client.go`    | gRPC client, degrades when unreachable                                      |
 | `pkg/dag/inputs-resolve.go`       | `ResolveTargetInputs` — shared target→input-set resolution                  |
 | `pkg/dag/watcher.go`              | `WithWatcher`, `WatcherSession`, `SolveWatcherChanges`                      |
-| `pkg/cli/cmd/server/*.go`         | `quitsh server serve\|status\|stop\|reset`                                  |
+| `pkg/cli/cmd/watcher/*.go`        | `quitsh server serve\|status\|stop\|reset`                                  |
 | `test/watcher_test.go`            | Integration test over a real unix socket                                    |
 
 ---
@@ -4366,10 +4366,10 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 
 **Files:**
 
-- Create: `pkg/cli/cmd/server/server.go`
-- Create: `pkg/cli/cmd/server/serve.go`
-- Create: `pkg/cli/cmd/server/status.go`
-- Create: `pkg/cli/cmd/server/control.go`
+- Create: `pkg/cli/cmd/watcher/server.go`
+- Create: `pkg/cli/cmd/watcher/serve.go`
+- Create: `pkg/cli/cmd/watcher/status.go`
+- Create: `pkg/cli/cmd/watcher/control.go`
 
 **Interfaces:**
 
@@ -4378,7 +4378,7 @@ git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.gith
 - Produces: `servercmd.AddCmd(cl cli.ICLI, parent *cobra.Command)` adding
   `server serve|status|stop|reset`.
 
-- [ ] **Step 1: Write `pkg/cli/cmd/server/server.go`**
+- [ ] **Step 1: Write `pkg/cli/cmd/watcher/server.go`**
 
 ```go
 // Package servercmd adds the `quitsh server` change-tracking watcher commands.
@@ -4444,7 +4444,7 @@ func dial(cl cli.ICLI) (*watcherclient.Client, error) {
 }
 ```
 
-- [ ] **Step 2: Write `pkg/cli/cmd/server/serve.go`**
+- [ ] **Step 2: Write `pkg/cli/cmd/watcher/serve.go`**
 
 ```go
 package servercmd
@@ -4513,7 +4513,7 @@ func serve(cl cli.ICLI, address string) error {
 `cl.Ctx()` is already a signal context when the CLI was built with
 `cli.WithSignalContext(true)`, so Ctrl-C flushes state and removes the socket.
 
-- [ ] **Step 3: Write `pkg/cli/cmd/server/status.go`**
+- [ ] **Step 3: Write `pkg/cli/cmd/watcher/status.go`**
 
 ```go
 package servercmd
@@ -4634,7 +4634,7 @@ func reason(res *watcherclient.Result, id target.ID) string {
 }
 ```
 
-- [ ] **Step 4: Write `pkg/cli/cmd/server/control.go`**
+- [ ] **Step 4: Write `pkg/cli/cmd/watcher/control.go`**
 
 ```go
 package servercmd
@@ -4710,7 +4710,7 @@ Run: `go build ./...` Expected: no output.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add pkg/cli/cmd/server
+git add pkg/cli/cmd/watcher
 git -c user.name='Gabriel Nützi' -c user.email='647437+gabyx@users.noreply.github.com' \
   commit -m "feat(cli): add 'quitsh server' watcher commands"
 ```
@@ -4885,7 +4885,7 @@ and register the command next to the other `AddCmd` calls:
 	servercmd.AddCmd(cli, cli.RootCmd())
 ```
 
-with the imports `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"`
+with the imports `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/watcher"`
 and `"github.com/sdsc-ordes/quitsh/pkg/watcher"`.
 
 While you are there, remove the duplicated
@@ -4975,7 +4975,7 @@ and register the command next to the other `AddCmd` calls:
 	servercmd.AddCmd(cli, cli.RootCmd())
 ```
 
-Imports to add: `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/server"`,
+Imports to add: `servercmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/watcher"`,
 `"github.com/sdsc-ordes/quitsh/pkg/watcher"`, and
 `"github.com/sdsc-ordes/quitsh/pkg/common"` (if not already imported). Match the
 existing cast style in that file — it may already use `common.Cast` or a direct
