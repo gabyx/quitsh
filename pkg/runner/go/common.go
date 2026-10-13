@@ -43,18 +43,16 @@ func GetBuildFlags(
 	}
 
 	// Set the <versionModule>.BuildVersion string
-	if versionModule == "" {
-		versionModule = "build"
+	if versionModule != "" {
+		ldFlags = append(
+			ldFlags,
+			"-X", path.Join(
+				modInfo.ModPath,
+				versionModule+
+					".buildVersion=",
+			)+version.String(),
+		)
 	}
-
-	ldFlags = append(
-		ldFlags,
-		"-X", path.Join(
-			modInfo.ModPath,
-			versionModule+
-				".buildVersion=",
-		)+version.String(),
-	)
 
 	// Nix build options.
 	if nix.InBuild() {
