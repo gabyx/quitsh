@@ -60,8 +60,14 @@ func AddCmd(
 	return execCmd
 }
 
+//nolint:funlen
 func runExec(cli cli.ICLI, args *toolchain.DispatchArgs) error {
-	log.Info("Executing runner ...", "args", args)
+	log.Infof(
+		"Executing runner: %v [id: '%v', step: '%v']",
+		args.TargetID,
+		args.RunnerID,
+		args.StepIndex,
+	)
 
 	err := args.Validate()
 	if err != nil {
