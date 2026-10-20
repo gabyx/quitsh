@@ -12,7 +12,7 @@
       ...
     }:
     let
-      inherit (config.flake.lib) mkShell;
+      inherit (config.flake.lib) mkShell mkShellEnv;
 
       pkgsPinned = {
         go = pkgs.go_1_26;
@@ -128,6 +128,39 @@
     in
     {
       devShells = {
+        test =
+          let
+            sh = mkShellEnv (makeShell toolchains.general);
+          in
+          pkgs.runCommandWith
+            {
+              name = "test";
+              derivationArgs = {
+                buildInputs = [ ];
+              };
+            }
+            # Bash
+            ''
+              echo "Hello"
+              echo "Sourcing ${sh}"
+              . "${sh}"
+              echo "Now"
+              hyperfine --version
+              mkdir "$out"
+              touch $out/A
+
+              cat <<EOF > main.go
+              package main
+              import "fmt"
+              func main() {
+                fmt.Printf("asdf")
+              }
+              EOF
+              tmp=$(mktemp -d)
+              export GOCACHE=$tmp
+              go build main.go
+              cp main $out/main.exe
+            '';
         default = makeShell toolchains.general;
         ci = makeShell toolchains.ci;
         build-go = makeShell toolchains.build-go;
