@@ -3,10 +3,10 @@
 package echorunner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	setts "github.com/sdsc-ordes/quitsh/test/runners/settings_test"
+	"github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/runner"
+	setts "github.com/gabyx/quitsh/test/runners/settings_test"
 )
 
 const EchoRunnerID = "integration-test::echo"

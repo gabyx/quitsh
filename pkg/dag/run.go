@@ -3,18 +3,18 @@ package dag
 import (
 	"os"
 
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/component/target"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/factory"
-	"github.com/sdsc-ordes/quitsh/pkg/tags"
-	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/component/target"
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner/factory"
+	"github.com/gabyx/quitsh/pkg/tags"
+	"github.com/gabyx/quitsh/pkg/toolchain"
 )
 
 type (

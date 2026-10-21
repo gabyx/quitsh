@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/sdsc-ordes/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

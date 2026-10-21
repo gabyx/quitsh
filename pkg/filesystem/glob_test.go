@@ -7,7 +7,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

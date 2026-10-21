@@ -3,11 +3,11 @@ package factory
 import (
 	"fmt"
 
-	"github.com/sdsc-ordes/quitsh/pkg/component/stage"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/component/stage"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
 )
 
 type IFactory interface {

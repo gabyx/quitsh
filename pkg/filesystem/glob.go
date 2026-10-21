@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/charlievieth/fastwalk"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 // FindFiles finds all files in `rootDir`.

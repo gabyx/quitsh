@@ -1,13 +1,13 @@
 package exectarget
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/cli"
-	"github.com/sdsc-ordes/quitsh/pkg/cli/general"
-	"github.com/sdsc-ordes/quitsh/pkg/common/set"
-	"github.com/sdsc-ordes/quitsh/pkg/component/target"
-	"github.com/sdsc-ordes/quitsh/pkg/dag"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/gabyx/quitsh/pkg/cli"
+	"github.com/gabyx/quitsh/pkg/cli/general"
+	"github.com/gabyx/quitsh/pkg/common/set"
+	"github.com/gabyx/quitsh/pkg/component/target"
+	"github.com/gabyx/quitsh/pkg/dag"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/toolchain"
 
 	"github.com/spf13/cobra"
 )

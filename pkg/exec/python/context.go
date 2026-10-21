@@ -1,7 +1,7 @@
 package python
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec"
 )
 
 // NewVEnvCtxBuilder creates a new command ctx buildter for a python virtual environment.

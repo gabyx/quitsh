@@ -3,16 +3,16 @@ package cli
 import (
 	"context"
 
-	"github.com/sdsc-ordes/quitsh/pkg/build"
-	"github.com/sdsc-ordes/quitsh/pkg/ci"
-	rootcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/root"
-	"github.com/sdsc-ordes/quitsh/pkg/cli/general"
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/component/query"
-	"github.com/sdsc-ordes/quitsh/pkg/component/stage"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/factory"
-	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/gabyx/quitsh/pkg/build"
+	"github.com/gabyx/quitsh/pkg/ci"
+	rootcmd "github.com/gabyx/quitsh/pkg/cli/cmd/root"
+	"github.com/gabyx/quitsh/pkg/cli/general"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/component/query"
+	"github.com/gabyx/quitsh/pkg/component/stage"
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/runner/factory"
+	"github.com/gabyx/quitsh/pkg/toolchain"
 
 	"github.com/spf13/cobra"
 )

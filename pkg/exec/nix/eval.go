@@ -1,8 +1,8 @@
 package nix
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
 )
 
 type EvalOption func(*opts) error

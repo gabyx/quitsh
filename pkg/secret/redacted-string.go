@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/errors"
 )
 
 var _ config.UnmarshalerMapstruct

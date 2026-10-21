@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 )
 
 type BuildType int

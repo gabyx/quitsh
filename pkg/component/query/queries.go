@@ -6,12 +6,12 @@ import (
 	"path"
 	"strings"
 
-	comp "github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	comp "github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 // Find finds all components in directory `root` and loads them.

@@ -1,6 +1,6 @@
 package config
 
-import "github.com/sdsc-ordes/quitsh/pkg/common"
+import "github.com/gabyx/quitsh/pkg/common"
 
 type ITestSettings interface {
 	// The build type for the tests.

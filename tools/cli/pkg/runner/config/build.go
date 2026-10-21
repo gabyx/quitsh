@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 )
 
 type BuildSettings struct {

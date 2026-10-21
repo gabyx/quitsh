@@ -1,6 +1,6 @@
 module quitsh-cli
 
-replace github.com/sdsc-ordes/quitsh => ../..
+replace github.com/gabyx/quitsh => ../..
 
 go 1.26.0
 
@@ -8,7 +8,7 @@ require (
 	github.com/creasty/defaults v1.8.0
 	github.com/go-playground/validator/v10 v10.30.2
 	github.com/huandu/go-clone v1.7.3
-	github.com/sdsc-ordes/quitsh v0.0.0-00010101000000-000000000000
+	github.com/gabyx/quitsh v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.10.2
 )
 

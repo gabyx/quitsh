@@ -3,14 +3,14 @@ package gorunner
 import (
 	"path"
 
-	cm "github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	gox "github.com/sdsc-ordes/quitsh/pkg/exec/go"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	cm "github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/debug"
+	gox "github.com/gabyx/quitsh/pkg/exec/go"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 )
 
 const GoTestRunnerID = "quitsh::test-go"

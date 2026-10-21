@@ -1,11 +1,11 @@
 package component
 
 import (
+	"github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/component/input"
+	"github.com/gabyx/quitsh/pkg/component/target"
+	"github.com/gabyx/quitsh/pkg/errors"
 	"github.com/hashicorp/go-version"
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/component/input"
-	"github.com/sdsc-ordes/quitsh/pkg/component/target"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
 )
 
 type Config struct {

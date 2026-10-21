@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/ci"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/ci"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 
 	"github.com/spf13/cobra"
 )

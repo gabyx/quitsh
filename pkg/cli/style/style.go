@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/sdsc-ordes/quitsh/pkg/ci"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/ci"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 func newRenderer() *lipgloss.Renderer {

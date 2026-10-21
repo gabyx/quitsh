@@ -6,12 +6,12 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/component/target"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	errorsfilter "github.com/sdsc-ordes/quitsh/pkg/errors/filter"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/component/target"
+	"github.com/gabyx/quitsh/pkg/errors"
+	errorsfilter "github.com/gabyx/quitsh/pkg/errors/filter"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
 )
 
 const ExecStatusNotRun = 0

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
 )
 
 // AddKnownHost adds a host name `hostName` with key `publicKey` to the known hosts SSH file.

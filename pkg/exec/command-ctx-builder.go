@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 type CmdContextBuilder struct {

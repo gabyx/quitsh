@@ -4,7 +4,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/debug"
 )
 
 type ID string

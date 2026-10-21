@@ -11,14 +11,14 @@ import (
 	"carvel.dev/imgpkg/pkg/imgpkg/lockconfig"
 
 	"github.com/containers/image/v5/docker/reference"
+	"github.com/gabyx/quitsh/pkg/ci"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec/skopeo"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/registry"
 	"github.com/goccy/go-yaml"
-	"github.com/sdsc-ordes/quitsh/pkg/ci"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/skopeo"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/registry"
 )
 
 func UploadImages(log log.ILog, sett *ImageSettings, pkgs ImagePackages) error {

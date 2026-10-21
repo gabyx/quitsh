@@ -3,7 +3,7 @@ package ci
 import (
 	"os"
 
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/exec/git"
 )
 
 // IsRunning returns `true` if we are currently running in CI.

@@ -3,8 +3,8 @@ package component
 import (
 	"path"
 
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/image"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/image"
 )
 
 // These paths are relative to the component folder.

@@ -10,7 +10,7 @@ import (
 	lipgloss "charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/term"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 )
 
 var ForceColorInCI = true //nolint:gochecknoglobals // Intended, to be disabled if really needed.

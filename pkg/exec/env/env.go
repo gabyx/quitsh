@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"deedles.dev/xiter"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 type EnvValue struct {

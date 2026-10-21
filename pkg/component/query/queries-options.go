@@ -5,8 +5,8 @@ import (
 	"path"
 	"slices"
 
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/component"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
 )
 
 type (

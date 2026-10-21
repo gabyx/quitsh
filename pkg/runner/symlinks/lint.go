@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/errors"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 )
 
 const SymlinkLintRunnerID = "quitsh::lint-symlinks"

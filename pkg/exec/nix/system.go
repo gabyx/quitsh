@@ -1,7 +1,7 @@
 package nix
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 )
 
 // CurrentSystem reports the current system.

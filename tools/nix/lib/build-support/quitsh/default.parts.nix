@@ -25,7 +25,7 @@ in
       # Skip some go tests.
       skippedTests ? [ ],
       # The module path to the `buildVersion` which is set at compile time like
-      # `github.com/sdsc-ordes/quitsh/pkg/build.buildVersion`.
+      # `github.com/gabyx/quitsh/pkg/build.buildVersion`.
       versionModulePath ? "",
       # Add meta stuff.
       meta ? { },

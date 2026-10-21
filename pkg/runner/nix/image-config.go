@@ -1,7 +1,7 @@
 package nixrunner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/component/step"
 
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"

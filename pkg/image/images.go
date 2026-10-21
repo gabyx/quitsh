@@ -5,8 +5,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/registry"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/registry"
 
 	"github.com/hashicorp/go-version"
 )

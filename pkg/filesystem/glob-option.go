@@ -6,8 +6,8 @@ import (
 	"slices"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/sdsc-ordes/quitsh/pkg/build"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/build"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 const traceEnabled = build.DebugEnabled

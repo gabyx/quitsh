@@ -1,6 +1,6 @@
 package git
 
-import "github.com/sdsc-ordes/quitsh/pkg/exec"
+import "github.com/gabyx/quitsh/pkg/exec"
 
 type Context struct {
 	*exec.CmdContext

@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/registry"
 	"github.com/hashicorp/go-version"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/registry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

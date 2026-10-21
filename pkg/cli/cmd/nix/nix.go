@@ -3,10 +3,10 @@ package nix
 import (
 	"errors"
 
-	"github.com/sdsc-ordes/quitsh/pkg/cli"
-	"github.com/sdsc-ordes/quitsh/pkg/cli/cmd/nix/cache"
-	fixhash "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/nix/fix-hash"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/cli"
+	"github.com/gabyx/quitsh/pkg/cli/cmd/nix/cache"
+	fixhash "github.com/gabyx/quitsh/pkg/cli/cmd/nix/fix-hash"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 
 	"github.com/spf13/cobra"
 )

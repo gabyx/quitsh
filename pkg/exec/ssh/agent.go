@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 type Agent struct {

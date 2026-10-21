@@ -3,8 +3,8 @@ package fs
 import (
 	"os"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 // MkDirs creates all directories in `path`.

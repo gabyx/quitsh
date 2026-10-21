@@ -7,13 +7,13 @@ import (
 
 	"deedles.dev/xiter"
 	"github.com/creasty/defaults"
-	"github.com/sdsc-ordes/quitsh/pkg/ci"
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/secret"
+	"github.com/gabyx/quitsh/pkg/ci"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/secret"
 )
 
 // CoverageToolInfo is information for the coverage tool, (currently this is `codecov`).

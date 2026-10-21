@@ -3,10 +3,10 @@ package config
 import (
 	"strings"
 
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/goccy/go-yaml"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
 )
 
 // ApplyKeyValues applies key,value pairs to a config, e.g. `a.b.c: {"a": 4}`

@@ -4,7 +4,7 @@ import (
 	"iter"
 	"sync"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 )
 
 // Map runs over all items in parallel and collects errors.

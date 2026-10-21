@@ -3,11 +3,11 @@ package processcomposeexec
 import (
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/cli"
-	processcomposestart "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/process-compose/start"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	pc "github.com/sdsc-ordes/quitsh/pkg/exec/process-compose"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/cli"
+	processcomposestart "github.com/gabyx/quitsh/pkg/cli/cmd/process-compose/start"
+	"github.com/gabyx/quitsh/pkg/errors"
+	pc "github.com/gabyx/quitsh/pkg/exec/process-compose"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/spf13/cobra"
 )
 

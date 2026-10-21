@@ -1,6 +1,6 @@
 package gox
 
-import "github.com/sdsc-ordes/quitsh/pkg/exec"
+import "github.com/gabyx/quitsh/pkg/exec"
 
 // NewCtxBuilder returns a new Go command context builder.
 func NewCtxBuilder() exec.CmdContextBuilder {

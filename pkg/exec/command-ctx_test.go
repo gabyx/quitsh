@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/lookpath"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/lookpath"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

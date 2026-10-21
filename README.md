@@ -3,17 +3,17 @@
 </p>
 
 <p align="center">
-  <a href="https://codecov.io/gh/sdsc-ordes/quitsh">
-    <img src="https://codecov.io/gh/sdsc-ordes/quitsh/graph/badge.svg?token=35RP18MHFR" alt="Coverage" />
+  <a href="https://codecov.io/gh/gabyx/quitsh">
+    <img src="https://codecov.io/gh/gabyx/quitsh/graph/badge.svg?token=35RP18MHFR" alt="Coverage" />
   </a>
-  <a href="https://github.com/sdsc-ordes/quitsh/releases/latest">
-    <img src="https://img.shields.io/github/release/sdsc-ordes/quitsh.svg?label=release" alt="Current Release" />
+  <a href="https://github.com/gabyx/quitsh/releases/latest">
+    <img src="https://img.shields.io/github/release/gabyx/quitsh.svg?label=release" alt="Current Release" />
   </a>
-  <a href="https://pkg.go.dev/github.com/sdsc-ordes/quitsh">
-    <img src="https://pkg.go.dev/badge/github.com/sdsc-ordes/quitsh" alt="Package" />
+  <a href="https://pkg.go.dev/github.com/gabyx/quitsh">
+    <img src="https://pkg.go.dev/badge/github.com/gabyx/quitsh" alt="Package" />
   </a>
-  <a href="https://github.com/sdsc-ordes/quitsh/actions/workflows/normal.yaml">
-    <img src="https://img.shields.io/github/actions/workflow/status/sdsc-ordes/quitsh/normal.yaml?label=ci" alt="Pipeline Status" />
+  <a href="https://github.com/gabyx/quitsh/actions/workflows/normal.yaml">
+    <img src="https://img.shields.io/github/actions/workflow/status/gabyx/quitsh/normal.yaml?label=ci" alt="Pipeline Status" />
   </a>
   <a href="https://mit-license.org/">
     <img src="https://img.shields.io/badge/License-Apache2.0-blue.svg?" alt="License label" />
@@ -223,7 +223,7 @@ A reference repository with commands and runner can be looked at here:
 
 - [`Custodian`](https://gitlab.com/data-custodian/custodian/tree/main/tools/quitsh)
 - [`DAC-Portal`](https://gitlab.com/data-custodian/dac-portal/tree/main/tools/quitsh)
-- [`Quitsh (this repo)`](https://github.com/sdsc-ordes/quitsh)
+- [`Quitsh (this repo)`](https://github.com/gabyx/quitsh)
 
 ## Config
 

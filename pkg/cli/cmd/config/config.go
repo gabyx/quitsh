@@ -3,9 +3,9 @@ package configcmd
 import (
 	"errors"
 
-	printcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/config/print"
-	writecmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/config/write"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
+	printcmd "github.com/gabyx/quitsh/pkg/cli/cmd/config/print"
+	writecmd "github.com/gabyx/quitsh/pkg/cli/cmd/config/write"
+	"github.com/gabyx/quitsh/pkg/config"
 
 	"github.com/spf13/cobra"
 )

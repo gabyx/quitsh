@@ -5,15 +5,15 @@ import (
 	"path"
 	nixpath "quitsh-cli/pkg/nix"
 
-	"github.com/sdsc-ordes/quitsh/pkg/cli/general"
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/shell"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	nixtoolchain "github.com/sdsc-ordes/quitsh/pkg/toolchain/nix"
+	"github.com/gabyx/quitsh/pkg/cli/general"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/exec/shell"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
+	nixtoolchain "github.com/gabyx/quitsh/pkg/toolchain/nix"
 )
 
 // Setup sets up the development environment.

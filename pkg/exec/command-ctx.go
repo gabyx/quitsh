@@ -11,12 +11,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	strs "github.com/sdsc-ordes/quitsh/pkg/common/strings"
-	cerr "github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/env"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/lookpath"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/common"
+	strs "github.com/gabyx/quitsh/pkg/common/strings"
+	cerr "github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/env"
+	"github.com/gabyx/quitsh/pkg/exec/lookpath"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 var EnableEnvPrint = false //nolint:gochecknoglobals // Allowed for CLI disabling.

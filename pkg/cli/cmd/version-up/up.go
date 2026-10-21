@@ -5,14 +5,14 @@ import (
 	"os"
 	"slices"
 
+	"github.com/gabyx/quitsh/pkg/cli"
+	"github.com/gabyx/quitsh/pkg/cli/general"
+	"github.com/gabyx/quitsh/pkg/errors"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/version"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
-	"github.com/sdsc-ordes/quitsh/pkg/cli"
-	"github.com/sdsc-ordes/quitsh/pkg/cli/general"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/version"
 
 	"github.com/spf13/cobra"
 )

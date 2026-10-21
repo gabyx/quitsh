@@ -2,7 +2,7 @@ package gorunner
 
 import (
 	"github.com/creasty/defaults"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/component/step"
 )
 
 type (

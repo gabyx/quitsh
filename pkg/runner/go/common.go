@@ -5,10 +5,10 @@ import (
 	"slices"
 	"strings"
 
-	cm "github.com/sdsc-ordes/quitsh/pkg/common"
-	gox "github.com/sdsc-ordes/quitsh/pkg/exec/go"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	cm "github.com/gabyx/quitsh/pkg/common"
+	gox "github.com/gabyx/quitsh/pkg/exec/go"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
+	"github.com/gabyx/quitsh/pkg/log"
 
 	"github.com/hashicorp/go-version"
 )

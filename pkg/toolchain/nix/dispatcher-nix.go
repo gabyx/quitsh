@@ -4,12 +4,12 @@ import (
 	"os"
 	"path"
 
-	"github.com/sdsc-ordes/quitsh/pkg/build"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
+	"github.com/gabyx/quitsh/pkg/build"
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/toolchain"
 
 	"github.com/goccy/go-yaml"
 )

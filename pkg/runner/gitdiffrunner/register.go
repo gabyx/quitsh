@@ -1,12 +1,12 @@
 package gitdiffrunner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/factory"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/runner/factory"
 )
 
 func Register(

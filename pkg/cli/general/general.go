@@ -1,12 +1,12 @@
 package general
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/component/query"
-	"github.com/sdsc-ordes/quitsh/pkg/dag"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/component/query"
+	"github.com/gabyx/quitsh/pkg/dag"
+	"github.com/gabyx/quitsh/pkg/errors"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/spf13/cobra"
 )
 

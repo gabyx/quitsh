@@ -1,4 +1,4 @@
-module github.com/sdsc-ordes/quitsh
+module github.com/gabyx/quitsh
 
 go 1.26.0
 

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/creasty/defaults"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 
 	"github.com/goccy/go-yaml"
 )

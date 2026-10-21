@@ -3,7 +3,7 @@ package image
 import (
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 
 	"github.com/containers/image/v5/docker/reference"
 )

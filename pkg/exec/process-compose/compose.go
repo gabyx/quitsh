@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
 	"golang.org/x/sync/errgroup"
 )
 

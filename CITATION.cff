@@ -8,8 +8,8 @@ authors:
     affiliation: "SDSC - Swiss Data Science Center"
 date-released: 2025-01-21
 version: "0.14.0"
-url: https://github.com/sdsc-ordes/quitsh
-repository-code: https://github.com/sdsc-ordes/quitsh
+url: https://github.com/gabyx/quitsh
+repository-code: https://github.com/gabyx/quitsh
 keywords:
   - build-tooling
   - cli-framework

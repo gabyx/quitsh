@@ -8,17 +8,17 @@ import (
 
 	"deedles.dev/xiter"
 
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/image"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/image"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 )
 
 const NixImageRunnerID = "quitsh::image-nix"

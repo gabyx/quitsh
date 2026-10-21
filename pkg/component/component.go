@@ -3,7 +3,7 @@ package component
 import (
 	"path"
 
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
 
 	"github.com/hashicorp/go-version"
 )

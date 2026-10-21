@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 type List []*regexp.Regexp

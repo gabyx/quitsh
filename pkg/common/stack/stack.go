@@ -3,7 +3,7 @@ package stack
 import (
 	"slices"
 
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/debug"
 )
 
 type Stack[T any] struct {

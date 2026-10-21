@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
 
 	"golang.org/x/mod/modfile"
 )

@@ -3,7 +3,7 @@ package secret
 import (
 	"os"
 
-	"github.com/sdsc-ordes/quitsh/pkg/exec/env"
+	"github.com/gabyx/quitsh/pkg/exec/env"
 )
 
 type CredentialsEnv struct {

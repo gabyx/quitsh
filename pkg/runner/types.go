@@ -1,8 +1,8 @@
 package runner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/component/stage"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/component/stage"
+	"github.com/gabyx/quitsh/pkg/component/step"
 )
 
 // RegisterID is the unique id the runner is registered on.

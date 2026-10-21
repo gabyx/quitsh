@@ -3,8 +3,8 @@ package debug
 import (
 	"fmt"
 
-	"github.com/sdsc-ordes/quitsh/pkg/build"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/build"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 // Assert is a debug functionality and is a no-op in release.

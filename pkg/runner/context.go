@@ -1,11 +1,11 @@
 package runner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/component/target"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/component/target"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 type IContext interface {

@@ -9,8 +9,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/exec"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

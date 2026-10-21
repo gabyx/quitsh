@@ -1,9 +1,9 @@
 package errorsfilter
 
 import (
+	"github.com/gabyx/quitsh/pkg/common/stack"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/hashicorp/go-multierror"
-	"github.com/sdsc-ordes/quitsh/pkg/common/stack"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
 )
 
 // alreadyReportedError is an wrapping error which can be dropped by `DropReported`.

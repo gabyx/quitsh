@@ -5,8 +5,8 @@ package pipeline
 import (
 	"testing"
 
+	"github.com/gabyx/quitsh/pkg/common"
 	"github.com/huandu/go-clone"
-	"github.com/sdsc-ordes/quitsh/pkg/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

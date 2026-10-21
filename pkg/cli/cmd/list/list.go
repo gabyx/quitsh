@@ -7,11 +7,11 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/sdsc-ordes/quitsh/pkg/cli"
-	"github.com/sdsc-ordes/quitsh/pkg/cli/general"
-	"github.com/sdsc-ordes/quitsh/pkg/component"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/cli"
+	"github.com/gabyx/quitsh/pkg/cli/general"
+	"github.com/gabyx/quitsh/pkg/component"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
 
 	"github.com/spf13/cobra"
 )

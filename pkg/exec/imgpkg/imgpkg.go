@@ -1,8 +1,8 @@
 package imgpkg
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/secret"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/secret"
 )
 
 type (

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sdsc-ordes/quitsh/pkg/cli"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	pc "github.com/sdsc-ordes/quitsh/pkg/exec/process-compose"
-	fs "github.com/sdsc-ordes/quitsh/pkg/filesystem"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/cli"
+	"github.com/gabyx/quitsh/pkg/errors"
+	pc "github.com/gabyx/quitsh/pkg/exec/process-compose"
+	fs "github.com/gabyx/quitsh/pkg/filesystem"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/spf13/cobra"
 )
 

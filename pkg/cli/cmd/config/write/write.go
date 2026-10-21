@@ -1,7 +1,7 @@
 package writecmd
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/config"
 
 	"github.com/spf13/cobra"
 )

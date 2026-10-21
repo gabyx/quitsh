@@ -3,10 +3,10 @@ package target
 import (
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/component/input"
-	"github.com/sdsc-ordes/quitsh/pkg/component/stage"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/component/input"
+	"github.com/gabyx/quitsh/pkg/component/stage"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/errors"
 )
 
 type Config struct {

@@ -3,8 +3,8 @@
 package gorunner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/common"
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/common"
+	"github.com/gabyx/quitsh/pkg/component/step"
 
 	"github.com/creasty/defaults"
 )

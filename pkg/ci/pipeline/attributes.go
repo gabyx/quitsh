@@ -3,10 +3,10 @@ package pipeline
 import (
 	"strings"
 
-	strs "github.com/sdsc-ordes/quitsh/pkg/common/strings"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	strs "github.com/gabyx/quitsh/pkg/common/strings"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
 
 	"github.com/goccy/go-yaml"
 )

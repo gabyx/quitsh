@@ -6,14 +6,14 @@ import (
 	"strings"
 	"syscall"
 
-	sets "github.com/sdsc-ordes/quitsh/pkg/common/set"
-	"github.com/sdsc-ordes/quitsh/pkg/component/query"
-	"github.com/sdsc-ordes/quitsh/pkg/component/stage"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
-	nixtoolchain "github.com/sdsc-ordes/quitsh/pkg/toolchain/nix"
+	sets "github.com/gabyx/quitsh/pkg/common/set"
+	"github.com/gabyx/quitsh/pkg/component/query"
+	"github.com/gabyx/quitsh/pkg/component/stage"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/toolchain"
+	nixtoolchain "github.com/gabyx/quitsh/pkg/toolchain/nix"
 
 	"github.com/hashicorp/go-version"
 )

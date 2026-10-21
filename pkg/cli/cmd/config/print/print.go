@@ -1,9 +1,9 @@
 package printcmd
 
 import (
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/log"
 	"github.com/goccy/go-yaml"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
 
 	"github.com/spf13/cobra"
 )

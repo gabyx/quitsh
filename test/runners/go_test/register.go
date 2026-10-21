@@ -3,12 +3,12 @@
 package gorunner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/component/step"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/factory"
-	settings "github.com/sdsc-ordes/quitsh/test/runners/settings_test"
+	"github.com/gabyx/quitsh/pkg/component/step"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner/factory"
+	settings "github.com/gabyx/quitsh/test/runners/settings_test"
 )
 
 // Register registers the runners in the factory.

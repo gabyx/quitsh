@@ -2,10 +2,10 @@ package image
 
 import (
 	"github.com/containers/image/v5/docker/reference"
+	"github.com/gabyx/quitsh/pkg/debug"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/skopeo"
 	"github.com/opencontainers/go-digest"
-	"github.com/sdsc-ordes/quitsh/pkg/debug"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/skopeo"
 )
 
 // Sets the digest either from the `pkg.ImageFile` or from `pkg.ImageRef[0]`.

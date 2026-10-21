@@ -1,10 +1,10 @@
 package image
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/registry"
-	"github.com/sdsc-ordes/quitsh/pkg/secret"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/registry"
+	"github.com/gabyx/quitsh/pkg/secret"
 )
 
 type ImageSettings struct {

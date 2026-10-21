@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sdsc-ordes/quitsh/pkg/build"
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/build"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec/git"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/errors"
 
 	"github.com/hashicorp/go-version"
 )

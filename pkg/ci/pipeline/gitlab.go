@@ -3,11 +3,11 @@ package pipeline
 import (
 	"os"
 
-	strs "github.com/sdsc-ordes/quitsh/pkg/common/strings"
-	"github.com/sdsc-ordes/quitsh/pkg/errors"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/env"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/git"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	strs "github.com/gabyx/quitsh/pkg/common/strings"
+	"github.com/gabyx/quitsh/pkg/errors"
+	"github.com/gabyx/quitsh/pkg/exec/env"
+	"github.com/gabyx/quitsh/pkg/exec/git"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 const (

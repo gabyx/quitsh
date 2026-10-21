@@ -1,8 +1,8 @@
 package nixtoolchain
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/exec"
-	"github.com/sdsc-ordes/quitsh/pkg/exec/nix"
+	"github.com/gabyx/quitsh/pkg/exec"
+	"github.com/gabyx/quitsh/pkg/exec/nix"
 )
 
 // NewCtxBuilder, see `nix.NewDevShellCtxBuilder`.

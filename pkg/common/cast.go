@@ -3,7 +3,7 @@ package common
 import (
 	"reflect"
 
-	"github.com/sdsc-ordes/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/log"
 )
 
 func Cast[T any](settings any) T {

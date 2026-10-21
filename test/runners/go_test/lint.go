@@ -3,7 +3,7 @@
 package gorunner
 
 import (
-	"github.com/sdsc-ordes/quitsh/pkg/runner"
+	"github.com/gabyx/quitsh/pkg/runner"
 )
 
 const GoLintRunnerID = "integration-test::lint-go"

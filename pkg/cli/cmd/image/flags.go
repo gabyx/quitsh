@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sdsc-ordes/quitsh/pkg/image"
-	"github.com/sdsc-ordes/quitsh/pkg/registry"
-	"github.com/sdsc-ordes/quitsh/pkg/runner/config"
+	"github.com/gabyx/quitsh/pkg/image"
+	"github.com/gabyx/quitsh/pkg/registry"
+	"github.com/gabyx/quitsh/pkg/runner/config"
 	"github.com/spf13/cobra"
 )
 

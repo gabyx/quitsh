@@ -11,11 +11,11 @@
         modRoot = "./tools/cli";
         vendorHash = "sha256-SLlo47cxD+nzV7VbYBQHFsOpdqJV2xIXi1/iA8IwoF8=";
 
-        versionModulePath = "github.com/sdsc-ordes/quitsh/pkg/build.buildVersion";
+        versionModulePath = "github.com/gabyx/quitsh/pkg/build.buildVersion";
 
         meta = {
           description = "The quitsh's own CLI tool to build itself.";
-          homepage = "https://github.com/sdsc-ordes/quitsh";
+          homepage = "https://github.com/gabyx/quitsh";
           license = lib.licenses.agpl3Plus;
           maintainers = [ "gabyx" ];
         };

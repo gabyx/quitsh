@@ -2,13 +2,13 @@ package config
 
 import (
 	"github.com/creasty/defaults"
+	rootcmd "github.com/gabyx/quitsh/pkg/cli/cmd/root"
+	"github.com/gabyx/quitsh/pkg/config"
+	"github.com/gabyx/quitsh/pkg/dag"
+	"github.com/gabyx/quitsh/pkg/log"
+	"github.com/gabyx/quitsh/pkg/toolchain"
 	"github.com/go-playground/validator/v10"
 	"github.com/huandu/go-clone"
-	rootcmd "github.com/sdsc-ordes/quitsh/pkg/cli/cmd/root"
-	"github.com/sdsc-ordes/quitsh/pkg/config"
-	"github.com/sdsc-ordes/quitsh/pkg/dag"
-	"github.com/sdsc-ordes/quitsh/pkg/log"
-	"github.com/sdsc-ordes/quitsh/pkg/toolchain"
 
 	cconfig "quitsh-cli/pkg/runner/config"
 )
