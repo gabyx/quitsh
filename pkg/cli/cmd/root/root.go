@@ -386,6 +386,10 @@ func applyGeneralOptions(r *Args) error {
 		if err != nil {
 			return errors.AddContext(err, "could not set log level to '%v'", r.LogLevel)
 		}
+
+		if r.LogLevel == log.TraceLevel.String() {
+			exec.LogAllCommands = true
+		}
 	}
 
 	if r.GlobalOutput && r.GlobalOutputDir != "" {

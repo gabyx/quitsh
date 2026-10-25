@@ -66,7 +66,7 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (
       lib.pipe inputs.import-tree [
         # NOTE: Uncomment the below to inspect what modules are loaded.
-        (i: i.map (x: lib.info "modos: Importing: '${x}'" x))
+        # (i: i.map (x: lib.info "modos: Importing: '${x}'" x))
         (i: i.filter (lib.hasInfix ".parts."))
         (
           i:

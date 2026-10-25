@@ -21,6 +21,9 @@ import (
 
 var EnableEnvPrint = false //nolint:gochecknoglobals // Allowed for CLI disabling.
 
+// LogAllCommands is enabled in `root.go` and force enables all logging of all commands.
+var LogAllCommands = false //nolint:gochecknoglobals // Allowed for CLI enabling.
+
 // GlobalContext is the context which the command execution will use if set.
 // NOTE: This is a bit ugly, but its hard to push a context (with signal handling)
 // through to all constructors, cause it was not designed like that.
@@ -152,7 +155,7 @@ func (c *CmdContext) GetWithEC(handleExit ExitCodeHandler, args ...string) (stri
 
 	buf := setupCapture(c, cmd, false)
 
-	if c.logCommand {
+	if c.logCommand || LogAllCommands {
 		logCommand(c, cmd)
 	}
 	stdout, err := cmd.Output()
